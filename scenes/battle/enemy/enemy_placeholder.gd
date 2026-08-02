@@ -265,6 +265,12 @@ func _draw() -> void:
 
 	if is_frozen:
 		draw_arc(Vector2.ZERO, radius * 1.5, 0, TAU, 24, Color(0.4, 0.85, 1.0, 0.85), 2.0, true)
+		var ice_col: Color = Color(0.65, 0.95, 1.0, 0.9)
+		for k: int in range(4):
+			var ang: float = float(k) * (TAU / 4.0) + 0.2
+			var p1: Vector2 = Vector2(cos(ang) * (radius * 0.8), sin(ang) * (radius * 0.8))
+			var p2: Vector2 = Vector2(cos(ang) * (radius * 1.6), sin(ang) * (radius * 1.6))
+			draw_line(p1, p2, ice_col, 2.0)
 
 	# Hit Flash Overlay Ring
 	if hit_flash_timer > 0.0:

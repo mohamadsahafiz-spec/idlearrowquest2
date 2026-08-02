@@ -23,7 +23,11 @@ func _ready() -> void:
 
 	skill_system = SkillSystem.new()
 	skill_system.name = "SkillSystem"
-	add_child(skill_system)
+	skill_system.z_index = 10
+	if arena_placeholder != null:
+		arena_placeholder.add_child(skill_system)
+	else:
+		add_child(skill_system)
 
 	if arena_placeholder != null:
 		arena_placeholder.stage_system = stage_system

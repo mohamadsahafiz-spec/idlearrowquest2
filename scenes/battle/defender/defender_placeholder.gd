@@ -16,6 +16,7 @@ var current_target: EnemyPlaceholder = null
 var fire_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
 var hit_flash_timer: float = 0.0
+var is_overdrive_active: bool = false
 
 var max_hp: float:
 	get:
@@ -198,6 +199,18 @@ func _draw() -> void:
 		var flash_alpha: float = clampf(hit_flash_timer / 0.15, 0.0, 1.0)
 		draw_arc(Vector2(0, -6), 22.0, 0, TAU, 24, Color(1.0, 0.25, 0.25, flash_alpha * 0.8), 2.5, true)
 		draw_circle(Vector2(0, -13), 6.0, Color(1.0, 0.4, 0.3, flash_alpha * 0.7))
+
+	# Overdrive Energized Aura / Pulse
+	if is_overdrive_active:
+		var pulse: float = (sin(Time.get_ticks_msec() * 0.012) + 1.0) * 0.5
+		var aura_col: Color = Color(0.9, 0.25, 1.0, 0.65 + pulse * 0.3)
+		draw_arc(Vector2(0, -6), 28.0 + pulse * 4.0, 0, TAU, 32, aura_col, 3.0, true)
+		draw_arc(Vector2(0, -6), 20.0 - pulse * 2.0, 0, TAU, 24, Color(0.4, 0.9, 1.0, 0.75), 2.0, true)
+		for k: int in range(4):
+			var ang: float = float(k) * (PI * 0.5) + Time.get_ticks_msec() * 0.008
+			var p1: Vector2 = Vector2(cos(ang), sin(ang)) * 10.0
+			var p2: Vector2 = Vector2(cos(ang + 0.4), sin(ang + 0.4)) * 18.0
+			draw_line(Vector2(0, -13) + p1, Vector2(0, -13) + p2, Color(0.95, 0.6, 1.0, 0.9), 2.0)
 
 	# Defender HP Bar
 	_draw_hp_bar()

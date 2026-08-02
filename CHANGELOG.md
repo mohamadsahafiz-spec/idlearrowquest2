@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - Unreleased
+
+### Added
+- **Skill Visual Effects**: Visible meteor strike animation with impact flash and shockwave ring; frost overlay with radiating ice spikes on frozen enemies; electric aura pulse on defender during Overdrive.
+- **Stage State Auto Cleanup**: Replaced invalid StageSystem property references with `stage_system.state` checks (`WAVE_ACTIVE` / `BOSS_ACTIVE`), preventing AUTO skills during victory/defeat/transitions.
+
 ## [0.5.0] - Unreleased
 
 ### Added
