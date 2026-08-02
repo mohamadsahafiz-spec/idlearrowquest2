@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.8] - Unreleased
+
+### Added
+- Implemented kill counter and continuous enemy respawn loop (`ArenaPlaceholder`, `HUDPlaceholder`):
+  - Added kill counter tracking (`kill_count`) in `ArenaPlaceholder` emitting `enemy_killed(total_kills)` signal on each enemy death.
+  - Added top HUD kill counter display rendering `"Kill Enemies: 0"` dynamically updating on each kill.
+  - Added modular automatic enemy respawning with configurable delay (`respawn_delay = 1.0s`) after an enemy dies.
+  - Enforced single active enemy constraint (`current_enemy`) allowing continuous, seamless infinite combat testing.
+  - Verified defender auto-acquisition for newly spawned enemies along the path.
+
 ## [0.0.7] - Unreleased
 
 ### Added

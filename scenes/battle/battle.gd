@@ -5,4 +5,5 @@ extends Control
 @onready var hud_placeholder: HUDPlaceholder = $HUDPlaceholder
 
 func _ready() -> void:
-	pass
+	if arena_placeholder != null and hud_placeholder != null:
+		arena_placeholder.enemy_killed.connect(hud_placeholder.update_kill_count)
