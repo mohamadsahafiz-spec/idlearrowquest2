@@ -56,6 +56,7 @@ func spawn_enemy() -> void:
 
 	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
 	if enemy_instance != null:
+		enemy_instance.defender_target = defender
 		enemies_container.add_child(enemy_instance)
 		current_enemy = enemy_instance
 		enemy_instance.enemy_died.connect(_on_enemy_died)

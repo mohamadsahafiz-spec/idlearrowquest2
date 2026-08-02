@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5] - Unreleased
+
+### Added
+- Implemented first enemy-to-defender combat interaction:
+  - Configured configurable `max_hp` (100.0) and `current_hp` tracking on `DefenderPlaceholder` via `DefenderStats`.
+  - Added enemy attack state transition (`is_attacking = true`) when an enemy reaches the central platform destination.
+  - Implemented continuous enemy attack loop targeting defender with cadence derived from `EnemyStats` (`attack = 10.0`, `attack_speed = 1.0`).
+  - Added rendered defender HP bar and floating damage popups (`-10`) on hit.
+  - Ensured safe defender HP clamping at 0.0 with defender remaining active for continuous testing.
+  - Maintained defender auto-targeting and projectile firing simultaneously during enemy attacks.
+  - Maintained zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.4] - Unreleased
 
 ### Added

@@ -2,6 +2,7 @@ class_name DefenderPlaceholder
 extends Node2D
 
 @export var stats: DefenderStats
+@export var current_hp: float = 100.0
 @export var show_debug_visuals: bool = false
 @export var enemies_container: Node2D
 @export var projectiles_container: Node2D
@@ -10,6 +11,11 @@ const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/pr
 
 var current_target: EnemyPlaceholder = null
 var fire_timer: float = 0.0
+var damage_popups: Array[Dictionary] = []
+
+var max_hp: float:
+	get:
+		return stats.get_max_hp() if stats != null else 100.0
 
 var attack_range: float:
 	get:
@@ -30,11 +36,41 @@ var damage: float:
 func _ready() -> void:
 	if stats == null:
 		stats = DefenderStats.new()
+	current_hp = max_hp
+
+func take_damage(amount: float) -> void:
+	if current_hp <= 0.0:
+		return
+	current_hp = maxf(0.0, current_hp - amount)
+	_add_damage_popup(amount)
+	queue_redraw()
+
+func _add_damage_popup(amount: float) -> void:
+	var popup_info: Dictionary = {
+		"text": "-" + str(int(amount)),
+		"offset": Vector2(randf_range(-6.0, 6.0), -32.0),
+		"life": 0.8,
+		"max_life": 0.8
+	}
+	damage_popups.append(popup_info)
 
 func _process(delta: float) -> void:
+	_update_popups(delta)
 	_update_target()
 	_update_firing(delta)
 	queue_redraw()
+
+func _update_popups(delta: float) -> void:
+	var i: int = damage_popups.size() - 1
+	while i >= 0:
+		var popup: Dictionary = damage_popups[i]
+		var life: float = float(popup["life"]) - delta
+		popup["life"] = life
+		var offset: Vector2 = popup["offset"] as Vector2
+		popup["offset"] = offset + Vector2(0.0, -28.0 * delta)
+		if life <= 0.0:
+			damage_popups.remove_at(i)
+		i -= 1
 
 func _update_firing(delta: float) -> void:
 	if current_target != null and is_instance_valid(current_target) and _is_enemy_in_range(current_target):
@@ -122,6 +158,12 @@ func _draw() -> void:
 	_draw_polyline_closed(crystal_pts, Color(0.8, 0.95, 1.0, 1.0), 1.5)
 	draw_circle(Vector2(0, -13), 3.0, Color(1.0, 1.0, 1.0, 0.95))
 
+	# Defender HP Bar
+	_draw_hp_bar()
+
+	# Floating Damage Popups
+	_draw_damage_popups()
+
 	# Debug Visuals (Range Ring + Targeting Beam + Reticle)
 	if show_debug_visuals:
 		# Range Indicator Ring (Subtle guide)
@@ -167,3 +209,43 @@ func _draw_polyline_closed(pts: PackedVector2Array, color: Color, width: float =
 	var closed_pts: PackedVector2Array = pts.duplicate()
 	closed_pts.append(pts[0])
 	draw_polyline(closed_pts, color, width, true)
+
+func _draw_hp_bar() -> void:
+	var bar_width: float = 36.0
+	var bar_height: float = 4.0
+	var bar_pos: Vector2 = Vector2(-bar_width * 0.5, 12.0)
+
+	# Background rect
+	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.08, 0.1, 0.14, 0.85))
+
+	# Fill rect
+	var hp_pct: float = clampf(current_hp / maxf(1.0, max_hp), 0.0, 1.0)
+	if hp_pct > 0.0:
+		var fill_width: float = bar_width * hp_pct
+		var fill_color: Color = Color(0.2, 0.85, 0.4, 0.9)
+		if hp_pct <= 0.25:
+			fill_color = Color(0.95, 0.25, 0.25, 0.9)
+		elif hp_pct <= 0.5:
+			fill_color = Color(0.95, 0.75, 0.2, 0.9)
+		draw_rect(Rect2(bar_pos, Vector2(fill_width, bar_height)), fill_color)
+
+	# Border outline
+	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.4, 0.5, 0.65, 0.8), false, 1.0)
+
+func _draw_damage_popups() -> void:
+	var font: Font = ThemeDB.fallback_font
+	if font == null:
+		return
+
+	for popup: Dictionary in damage_popups:
+		var life: float = float(popup["life"])
+		var max_life: float = float(popup["max_life"])
+		var alpha: float = clampf(life / max_life, 0.0, 1.0)
+		var text_pos: Vector2 = popup["offset"] as Vector2
+		var text_str: String = popup["text"] as String
+
+		# Drop shadow
+		draw_string(font, text_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.0, 0.0, 0.0, alpha * 0.8))
+		# Main text in vibrant crimson/orange
+		draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.3, 0.2, alpha))
+

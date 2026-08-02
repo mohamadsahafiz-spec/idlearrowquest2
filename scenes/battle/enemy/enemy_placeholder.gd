@@ -10,6 +10,7 @@ signal enemy_died(coins: int, pos: Vector2)
 @export var enemy_color: Color = Color(0.95, 0.25, 0.25, 1.0)
 @export var outline_color: Color = Color(1.0, 0.85, 0.85, 0.9)
 @export var radius: float = 10.0
+@export var defender_target: DefenderPlaceholder = null
 
 var max_hp: float:
 	get:
@@ -38,6 +39,8 @@ var attack_cooldown: float:
 var path_points: PackedVector2Array = PackedVector2Array()
 var current_waypoint_index: int = 0
 var is_moving: bool = false
+var is_attacking: bool = false
+var attack_timer: float = 0.0
 var is_dead: bool = false
 var death_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
@@ -63,6 +66,7 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 func _die() -> void:
 	is_dead = true
 	is_moving = false
+	is_attacking = false
 	death_timer = death_duration
 	_add_reward_popup(coin_reward)
 	enemy_died.emit(coin_reward, global_position)
@@ -117,12 +121,40 @@ func _process(delta: float) -> void:
 			current_waypoint_index += 1
 			if current_waypoint_index >= path_points.size():
 				is_moving = false
+				is_attacking = true
+				attack_timer = 0.0
 				reached_destination.emit()
 		else:
 			var direction: Vector2 = (target_pos - position).normalized()
 			position += direction * move_distance
 
+	if is_attacking:
+		_update_attacking(delta)
+
 	queue_redraw()
+
+func _update_attacking(delta: float) -> void:
+	if not is_attacking or is_dead:
+		return
+
+	if defender_target == null or not is_instance_valid(defender_target):
+		_find_defender_target()
+
+	if defender_target != null and is_instance_valid(defender_target):
+		var cd: float = attack_cooldown
+		attack_timer -= delta
+		if attack_timer > cd:
+			attack_timer = cd
+		if attack_timer <= 0.0:
+			if defender_target.has_method("take_damage"):
+				defender_target.take_damage(attack)
+			attack_timer = cd
+
+func _find_defender_target() -> void:
+	if get_parent() != null and get_parent().get_parent() != null:
+		var arena: Node = get_parent().get_parent()
+		if arena.has_node("DefenderPlaceholder"):
+			defender_target = arena.get_node("DefenderPlaceholder") as DefenderPlaceholder
 
 func _update_popups(delta: float) -> void:
 	# Update damage popups
