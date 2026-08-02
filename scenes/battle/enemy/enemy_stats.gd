@@ -9,6 +9,7 @@ enum Tier {
 }
 
 @export var tier: Tier = Tier.NORMAL
+@export var enemy_name: String = ""
 @export var max_hp: float = 100.0
 @export var movement_speed: float = 85.0
 @export var attack: float = 10.0

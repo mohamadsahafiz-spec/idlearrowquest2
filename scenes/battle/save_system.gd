@@ -100,6 +100,7 @@ func save_game() -> void:
 	var save_data: Dictionary = {
 		"timestamp": Time.get_unix_time_from_system(),
 		"stage": stage_system.current_stage,
+		"world_1_completed": stage_system.is_world_1_completed,
 		"gold": progression_system.gold,
 		"attack_level": progression_system.attack_level,
 		"speed_level": progression_system.speed_level,
@@ -144,6 +145,7 @@ func apply_save_data(data: Dictionary) -> float:
 	var saved_time: float = float(data.get("timestamp", 0.0))
 
 	if stage_system != null:
+		stage_system.is_world_1_completed = bool(data.get("world_1_completed", false))
 		stage_system.start_stage(int(data.get("stage", 1)))
 
 	if progression_system != null:

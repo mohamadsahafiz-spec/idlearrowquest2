@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2] - Unreleased
+
+### Added
+- **World 1 Royal Kingdom Stage Structure**: 10 total stages divided into 4 stage environment groups (Royal Outskirts 1-3, Kingdom Road 4-6, Damaged Village 7-9, Royal Castle Front 10).
+- **World 1 Enemy Roster & Boss Progression**: Data-driven enemy identities per stage group, and 3 distinct progression boss encounters (Goblin Captain at Stage 5, Orc Warlord at Stage 8, Young Crimson Dragon at Stage 10).
+- **World Completion Foundation**: Victory at Stage 10 completes Royal Kingdom, prevents stage 11 overflow, emits world_completed hook, and persists completion state in SaveSystem.
+
 ## [0.7.1] - Unreleased
 
 ### Added

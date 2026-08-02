@@ -89,14 +89,14 @@ func _draw() -> void:
 	draw_circle(head_pos, 11.0, Color(1.0, 0.92, 0.88, 1.0))
 
 	# Soft Violet Eyes
-	draw_ellipse_filled(head_pos + Vector2(-4, -1), 2.2, 3.5, Color(0.4, 0.35, 0.65, 1.0))
-	draw_ellipse_filled(head_pos + Vector2(4, -1), 2.2, 3.5, Color(0.4, 0.35, 0.65, 1.0))
+	_draw_ellipse_filled(head_pos + Vector2(-4, -1), 2.2, 3.5, Color(0.4, 0.35, 0.65, 1.0))
+	_draw_ellipse_filled(head_pos + Vector2(4, -1), 2.2, 3.5, Color(0.4, 0.35, 0.65, 1.0))
 	# Eye highlights
 	draw_circle(head_pos + Vector2(-4.5, -2), 1.0, Color.WHITE)
 	draw_circle(head_pos + Vector2(3.5, -2), 1.0, Color.WHITE)
 	# Blush
-	draw_ellipse_filled(head_pos + Vector2(-6, 3), 2.5, 1.2, Color(1.0, 0.6, 0.6, 0.4))
-	draw_ellipse_filled(head_pos + Vector2(6, 3), 2.5, 1.2, Color(1.0, 0.6, 0.6, 0.4))
+	_draw_ellipse_filled(head_pos + Vector2(-6, 3), 2.5, 1.2, Color(1.0, 0.6, 0.6, 0.4))
+	_draw_ellipse_filled(head_pos + Vector2(6, 3), 2.5, 1.2, Color(1.0, 0.6, 0.6, 0.4))
 
 	# 7. Silver Hair (Front Bangs & Bob)
 	var hair_color: Color = Color(0.92, 0.94, 0.98, 1.0)
