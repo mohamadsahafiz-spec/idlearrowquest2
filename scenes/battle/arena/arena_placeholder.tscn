@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://c8x1y2z3a4b5"]
+[gd_scene load_steps=8 format=3 uid="uid://c8x1y2z3a4b5"]
 
 [ext_resource type="Script" path="res://scenes/battle/arena/arena_placeholder.gd" id="1_arena"]
 [ext_resource type="Script" path="res://scenes/battle/arena/arena_background.gd" id="2_bg"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scenes/battle/enemy/enemy_path.gd" id="4_path"]
 [ext_resource type="Script" path="res://scenes/battle/arena/central_platform.gd" id="5_platform"]
 [ext_resource type="Script" path="res://scenes/battle/arena/arena_framing.gd" id="6_framing"]
+[ext_resource type="PackedScene" uid="uid://e2f3g4h5i6j7" path="res://scenes/battle/defender/defender_placeholder.tscn" id="7_defender"]
 
 [node name="ArenaPlaceholder" type="Node2D"]
 script = ExtResource("1_arena")
@@ -24,5 +25,8 @@ script = ExtResource("5_platform")
 
 [node name="Framing" type="Node2D" parent="."]
 script = ExtResource("6_framing")
+
+[node name="DefenderPlaceholder" parent="." instance=ExtResource("7_defender")]
+position = Vector2(270, 454)
 
 [node name="Enemies" type="Node2D" parent="."]

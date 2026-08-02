@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.4] - Unreleased
+
+### Added
+- Implemented defender auto-targeting foundation (`DefenderPlaceholder`):
+  - Created a Godot-native primitive defender structure positioned on top of the central platform.
+  - Added automatic target acquisition logic searching within a defined detection range (`detection_range = 240.0`).
+  - Added continuous target tracking and range validation to clear targets when out of range or invalid.
+  - Added visual targeting testing indicators: a targeting line/beam from the defender crystal core to the target enemy and a lock-on reticle.
+  - Linked `DefenderPlaceholder` to `Enemies` container in `ArenaPlaceholder`.
+
 ## [0.0.3] - Unreleased
 
 ### Added

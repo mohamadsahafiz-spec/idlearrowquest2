@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://e2f3g4h5i6j7"]
+
+[ext_resource type="Script" path="res://scenes/battle/defender/defender_placeholder.gd" id="1_defender"]
+
+[node name="DefenderPlaceholder" type="Node2D"]
+script = ExtResource("1_defender")
