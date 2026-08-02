@@ -22,6 +22,9 @@
     - Added center-screen banner overlay for `"WAVE COMPLETE"` and `"BOSS INCOMING"` states.
     - Preserved total "Kill Enemies: X" counter.
 
+### Fixed
+- Fixed GDScript `StageSystem` type resolution in `arena_placeholder.gd` and `battle.gd` using explicit script preloading.
+
 ## [0.1.8] - Unreleased
 
 ### Added
