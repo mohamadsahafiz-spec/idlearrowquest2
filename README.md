@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.7] - Unreleased
+## [0.7.7] - Released
 
 ### Added
 - **Individual Maid Combat Foundation**: Each active Maid owns an independent runtime combat profile (HP, Attack, Speed, Critical) while preserving Liria's player progression.
@@ -9,7 +9,7 @@
 - **Individual Defeat & Recovery**: Maids fall independently upon HP depletion; battle continues until all active party members fall.
 - **Combat Contribution Tracking**: Real-time per-Maid tracking for damage dealt, kills, critical hits, and deaths with query API hooks.
 
-## [0.7.6] - Unreleased
+## [0.7.6] - Released
 
 ### Added
 - **Visible In-Game DEV Panel**: Added a clickable top-bar `[DEV]` button opening a developer suite modal UI.
@@ -18,7 +18,7 @@
 - **Economy & Combat Testing**: Gold adjusters (+10K, +1M, Set 0, Set 100K), upgrade resets, and fresh baseline initialization.
 - **Safe Reset & Isolation**: Added temporary test run reset and permanent save deletion with confirmation guard.
 
-## [0.7.5] - Unreleased
+## [0.7.5] - Released
 
 ### Added
 - **Multi-Maid Combat Spawning**: Dynamic spawning for 1–6 active Maids in combat with backward compatibility for Liria (#001) and safe base combat profiles for #002–#006.
@@ -26,40 +26,40 @@
 - **Party Formation Offsets**: Centralized formation positioning for party sizes 1–6 adapting smoothly without overlapping.
 - **Party Defeat Condition & Debug Controls**: Updated defeat logic requiring all active Maids to fall before triggering defeat, and added shift-key shortcuts (`Shift+1..6`) for dev testing.
 
-## [0.7.4] - Unreleased
+## [0.7.4] - Released
 
 ### Added
 - **Battle Maid Registry & Roster**: Added `MaidRegistry` supporting 6 Battle Maid slots (#001 Liria unlocked by default, #002-#006 as locked placeholders).
 - **Recruitment & Party Management**: Modular recruitment system and 1-6 slot party manager with validation against duplicate/locked assignments and reordering.
 - **Save Migration & Maid Progression Foundation**: Persisted unlocked maids, recruitment state, and 1-6 party composition with automatic default migration for legacy save files.
 
-## [0.7.3] - Unreleased
+## [0.7.3] - Released
 
 ### Added
 - **Six-World Registry**: Centralized data-driven `WorldRegistry` registering Royal Kingdom (10), Enchanted Forest (30), Frozen Kingdom (60), Gothic Realm (100), Infernal Realm (250), and Celestial Realm (500).
 - **World Progression Core**: Clean campaign progression flow between worlds with world unlock, stage resets, and Endless Mode trigger upon clearing Celestial Realm Stage 500.
 - **Save State Persistence**: Multi-world save state recording current world, highest unlocked world, completed worlds, and endless mode, with backwards-compatible loading defaults.
 
-## [0.7.2] - Unreleased
+## [0.7.2] - Released
 
 ### Added
 - **World 1 Royal Kingdom Stage Structure**: 10 total stages divided into 4 stage environment groups (Royal Outskirts 1-3, Kingdom Road 4-6, Damaged Village 7-9, Royal Castle Front 10).
 - **World 1 Enemy Roster & Boss Progression**: Data-driven enemy identities per stage group, and 3 distinct progression boss encounters (Goblin Captain at Stage 5, Orc Warlord at Stage 8, Young Crimson Dragon at Stage 10).
 - **World Completion Foundation**: Victory at Stage 10 completes Royal Kingdom, prevents stage 11 overflow, emits world_completed hook, and persists completion state in SaveSystem.
 
-## [0.7.1] - Unreleased
+## [0.7.1] - Released
 
 ### Added
 - **Maid #001 — Liria Visual Layer**: Replaced defender placeholder visuals with a custom vector chibi presentation layer for Liria (silver hair, violet eyes, rookie maid dress, starter bow + quiver).
 - **Procedural Animations & Bow Launch**: Idle breathing bob, attack recoil/string pull aiming at targets, hit reaction flash, defeat pose, and projectile origin aligned with bow string.
 
-## [0.7.0] - Unreleased
+## [0.7.0] - Released
 
 ### Added
 - **WorldPresentation Architecture**: Modular World 1: Royal Kingdom foundation with stage environment variants (Royal Outskirts, Kingdom Road, Damaged Village, Royal Castle Front) and theme accents.
 - **Decoupled Visual Hooks**: Created presentation layer hooks in Defender, Enemy, and Boss components to allow custom visual/VFX replacements without affecting combat calculations or stats.
 
-## [0.6.0] - Unreleased
+## [0.6.0] - Released
 
 ### Added
 - **SaveSystem & Local Persistence**: Periodically auto-saves game state (Stage, Gold, Upgrades, Inventory, Equipment, AUTO settings) to local JSON and restores on launch.
@@ -67,13 +67,13 @@
 - **Auto Upgrade & Auto Equip**: Master toggles for automatic gold spending on balanced upgrades and auto-equipping power-improving gear.
 - **Idle Status & Debug Controls**: Compact HUD status showing AUTO SKILLS, AUTO UPGRADE, AUTO EQUIP states with debug buttons for offline simulation testing.
 
-## [0.5.1] - Unreleased
+## [0.5.1] - Released
 
 ### Added
 - **Skill Visual Effects**: Visible meteor strike animation with impact flash and shockwave ring; frost overlay with radiating ice spikes on frozen enemies; electric aura pulse on defender during Overdrive.
 - **Stage State Auto Cleanup**: Replaced invalid StageSystem property references with `stage_system.state` checks (`WAVE_ACTIVE` / `BOSS_ACTIVE`), preventing AUTO skills during victory/defeat/transitions.
 
-## [0.5.0] - Unreleased
+## [0.5.0] - Released
 
 ### Added
 - **SkillSystem Foundation**: Centralized active skills engine (`scenes/battle/skill_system.gd`).
@@ -83,7 +83,7 @@
 - **Skill HUD**: 3 skill cards displaying READY/ACTIVE/cooldown states and countdowns without obstructing upgrade UI.
 - **Auto Skills**: Independent AUTO ON/OFF toggles per skill persisting across stages during run, safe during victory/defeat transitions.
 
-## [0.4.1] - Unreleased
+## [0.4.1] - Released
 
 ### Added
 - **Item Power & Stage Scaling**: Equipment items roll item level based on dropped stage with centralized scaling formulas.
@@ -93,7 +93,7 @@
 - **Combat Power (PWR)**: Added centralized combat power calculation displayed dynamically in HUD stats panel.
 - **Loot Scaling**: Enemy tiers (Strong/Elite/Boss) and stages scale drop rarity odds and item power while preserving infinite progression.
 
-## [0.4.0] - Unreleased
+## [0.4.0] - Released
 
 ### Fixed
 - Fixed bug where non-HP upgrades reset Defender Max HP to default 100.
@@ -123,7 +123,7 @@
   - **Loot Testing Controls**:
     - Added inspector debug controls `debug_force_loot_drop` and `debug_force_rarity` (default OFF).
 
-## [0.3.1] - Unreleased
+## [0.3.1] - Released
 
 ### Added
 - Implemented Progression Expansion:
@@ -144,7 +144,7 @@
     - Added `DEFEAT` overlay state with `"Defender Destroyed"` subtitle and interactive `"RESTART RUN"` button.
     - Restarting run resets Stage, waves, enemy spawns, run Gold, and upgrade levels to Stage 1 base values.
 
-## [0.3.0] - Unreleased
+## [0.3.0] - Released
 
 ### Added
 - Implemented Core Progression & In-Run Upgrades:
@@ -166,7 +166,7 @@
   - **Run Progression Persistence**:
     - Upgrades and Gold persist seamlessly across stage transitions.
 
-## [0.2.1] - Unreleased
+## [0.2.1] - Released
 
 ### Added
 - Implemented Boss Fight, Victory Transition & Stage Progression:
@@ -186,7 +186,7 @@
     - Applied modest enemy stat scaling (HP, attack, rewards) for Stage 2 through `StageSystem`.
     - Maintained continuous kill count, rewards, and combat counters across stage transitions.
 
-## [0.2.0] - Unreleased
+## [0.2.0] - Released
 
 ### Added
 - Implemented Milestone 3 Stage + Wave Foundation:
@@ -211,7 +211,7 @@
 ### Fixed
 - Resolved GDScript class resolution conflicts in `arena_placeholder.gd` and `battle.gd` by using direct global `StageSystem` class reference instead of script preloading.
 
-## [0.1.8] - Unreleased
+## [0.1.8] - Released
 
 ### Added
 - Implemented Combat Presentation & Milestone 2 Combat Replica Integration:
@@ -233,7 +233,7 @@
     - Preserved `test_spawn_boss = false` by default in `ArenaPlaceholder`.
     - Maintained zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.7] - Unreleased
+## [0.1.7] - Released
 
 ### Added
 - Implemented modular Boss enemy foundation using existing combat architecture:
@@ -244,7 +244,7 @@
   - Preserved standard weighted spawning (`70% Normal`, `25% Strong`, `5% Elite`) when Boss test spawning is disabled.
   - Maintained full movement, targeting, projectile hits, critical hits, defender damage, rewards, and kill counter pipeline with zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.6] - Unreleased
+## [0.1.6] - Released
 
 ### Added
 - Implemented modular enemy tier system (Normal, Strong, Elite) powered by `EnemyStats`:
@@ -256,7 +256,7 @@
   - Added Godot-native visual distinctions for each tier (custom color schemes, radius scale multipliers, aura rings, and tier text labels).
   - Preserved movement, targeting, projectiles, critical hits, defender HP/damage, rewards, respawns, and kill tracking with zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.5] - Unreleased
+## [0.1.5] - Released
 
 ### Added
 - Implemented first enemy-to-defender combat interaction:
@@ -268,7 +268,7 @@
   - Maintained defender auto-targeting and projectile firing simultaneously during enemy attacks.
   - Maintained zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.4] - Unreleased
+## [0.1.4] - Released
 
 ### Added
 - Connected enemy combat behavior fully to `EnemyStats`:
@@ -277,7 +277,7 @@
   - Prepared `attack` and `attack_speed` stats as modular accessors ready for future enemy attack capabilities without modifying current non-attacking behavior.
   - Preserved existing balance (`max_hp = 100.0`, `movement_speed = 85.0`, `reward = 10`) and full gameplay loop stability with zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.3] - Unreleased
+## [0.1.3] - Released
 
 ### Added
 - Implemented critical hits powered by `DefenderStats`:
@@ -287,7 +287,7 @@
   - Added distinct floating damage numbers for critical hits (e.g. `"CRIT -30"` rendered in golden yellow at larger font scale).
   - Preserved all existing combat loop, targeting, range, death, reward, respawn, and kill-count behavior with zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.2] - Unreleased
+## [0.1.2] - Released
 
 ### Added
 - Implemented range system fully governed by `DefenderStats`:
@@ -297,7 +297,7 @@
   - Cleared target automatically when an enemy moves out of range and reacquires valid enemies upon entering range.
   - Preserved existing range balance (`range = 240.0`) and zero GDScript errors/warnings under Godot 4.7.1.
 
-## [0.1.1] - Unreleased
+## [0.1.1] - Released
 
 ### Added
 - Fully connected defender combat behavior to `DefenderStats`:
@@ -306,7 +306,7 @@
   - Configured `DefenderPlaceholder` to immediately reflect runtime changes in `attack` and `attack_speed`.
   - Preserved existing balance (`attack = 15.0`, `attack_speed = 1.25` yielding `0.8s` fire cooldown) and gameplay loop stability without introducing GDScript errors/warnings.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - Released
 
 ### Added
 - Implemented modular combat stats foundation (`DefenderStats`, `EnemyStats`):
@@ -316,7 +316,7 @@
   - Integrated `EnemyStats` into `EnemyPlaceholder` via `@export var stats: EnemyStats`, delegating max HP, movement speed, and coin reward amounts.
   - Preserved existing balance, combat timing, auto-targeting, and respawn gameplay loop behavior.
 
-## [0.0.9] - Unreleased
+## [0.0.9] - Released
 
 ### Added
 - Completed Milestone 1 Integration & Polish:
@@ -325,7 +325,7 @@
   - Refined HUD top bar kill counter with a styled container badge (`"Kill Enemies: X"`) positioned within top reserved layout boundaries.
   - Stabilized and verified the complete infinite gameplay loop: Spawn -> Path Movement -> Auto-Targeting -> Projectile Firing -> Damage Calculations -> HP Bar & Popups -> Death Dissolution -> Coin Reward -> Continuous Respawning.
 
-## [0.0.8] - Unreleased
+## [0.0.8] - Released
 
 ### Added
 - Implemented kill counter and continuous enemy respawn loop (`ArenaPlaceholder`, `HUDPlaceholder`):
@@ -335,7 +335,7 @@
   - Enforced single active enemy constraint (`current_enemy`) allowing continuous, seamless infinite combat testing.
   - Verified defender auto-acquisition for newly spawned enemies along the path.
 
-## [0.0.7] - Unreleased
+## [0.0.7] - Released
 
 ### Added
 - Implemented enemy death and coin reward event (`EnemyPlaceholder`):
@@ -347,7 +347,7 @@
   - Added temporary floating gold reward indicator (`+10 Coins`) floating upward and fading out at death location.
   - Updated `DefenderPlaceholder` and `ProjectilePlaceholder` to safely handle and clear dead targets.
 
-## [0.0.6] - Unreleased
+## [0.0.6] - Released
 
 ### Added
 - Implemented first enemy HP and damage loop:
@@ -358,7 +358,7 @@
   - Configured projectile hit impact to inflict defender weapon damage (`damage = 15.0`).
   - Preserved existing movement, targeting, and projectile behaviors.
 
-## [0.0.5] - Unreleased
+## [0.0.5] - Released
 
 ### Added
 - Implemented projectile firing foundation from defender to active target (`ProjectilePlaceholder`):
@@ -370,7 +370,7 @@
   - Added `Projectiles` node container to `ArenaPlaceholder` for clean projectile node lifecycle management.
   - Retained targeting debug line and lock-on reticle visuals for testing feedback.
 
-## [0.0.4] - Unreleased
+## [0.0.4] - Released
 
 ### Added
 - Implemented defender auto-targeting foundation (`DefenderPlaceholder`):
@@ -380,7 +380,7 @@
   - Added visual targeting testing indicators: a targeting line/beam from the defender crystal core to the target enemy and a lock-on reticle.
   - Linked `DefenderPlaceholder` to `Enemies` container in `ArenaPlaceholder`.
 
-## [0.0.3] - Unreleased
+## [0.0.3] - Released
 
 ### Added
 - Implemented first enemy movement foundation (`EnemyPlaceholder`):
@@ -389,7 +389,7 @@
   - Added smooth frame-by-frame movement along path waypoints, stopping automatically at central defender platform destination.
   - Added path guide visualization and waypoint markers for visual testing feedback.
 
-## [0.0.2] - Unreleased
+## [0.0.2] - Released
 
 ### Added
 - Built the static battle arena visual foundation for 540x960 portrait layout.
@@ -403,7 +403,7 @@
 ### Fixed
 - Fixed GDScript variable type inference warnings in `arena_rings.gd` and arena visual components for strict Godot 4.7.1 compatibility.
 
-## [0.0.1] - Unreleased
+## [0.0.1] - Released
 
 ### Fixed
 - Fixed scene parser error in battle and arena placeholder scenes by ensuring correct `[gd_scene]` headers.
