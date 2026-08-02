@@ -71,7 +71,7 @@ func _update_target() -> void:
 		current_target = closest_enemy
 
 func _is_enemy_valid_target(enemy: EnemyPlaceholder) -> bool:
-	return enemy != null and is_instance_valid(enemy)
+	return enemy != null and is_instance_valid(enemy) and not enemy.is_dead
 
 func _draw() -> void:
 	# Defender Structure (Godot primitives at local origin)

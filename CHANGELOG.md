@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.7] - Unreleased
+
+### Added
+- Implemented enemy death and coin reward event (`EnemyPlaceholder`):
+  - Added `is_dead` state flag and `_die()` handler triggered once when enemy HP reaches 0.
+  - Stopped enemy movement and disabled further targeting/damage taking upon death.
+  - Added temporary Godot-native primitive death dissolution visual effect (dissipating burst ring, expanding line fragments, and fading spark/shadow).
+  - Configured configurable despawn delay (`death_duration = 0.6s`) before removing the enemy node (`queue_free()`).
+  - Added configurable coin reward (`coin_reward = 10`) emitting `enemy_died(coins, pos)` signal.
+  - Added temporary floating gold reward indicator (`+10 Coins`) floating upward and fading out at death location.
+  - Updated `DefenderPlaceholder` and `ProjectilePlaceholder` to safely handle and clear dead targets.
+
 ## [0.0.6] - Unreleased
 
 ### Added

@@ -21,7 +21,7 @@ func _process(delta: float) -> void:
 		queue_free()
 		return
 
-	if target == null or not is_instance_valid(target):
+	if target == null or not is_instance_valid(target) or target.is_dead:
 		queue_free()
 		return
 
