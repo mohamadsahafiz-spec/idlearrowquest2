@@ -4,6 +4,7 @@ extends Node2D
 @export var detection_range: float = 240.0
 @export var fire_cooldown: float = 0.8
 @export var damage: float = 15.0
+@export var show_debug_visuals: bool = false
 @export var enemies_container: Node2D
 @export var projectiles_container: Node2D
 
@@ -100,20 +101,22 @@ func _draw() -> void:
 	_draw_polyline_closed(crystal_pts, Color(0.8, 0.95, 1.0, 1.0), 1.5)
 	draw_circle(Vector2(0, -13), 3.0, Color(1.0, 1.0, 1.0, 0.95))
 
-	# Range Indicator Ring (Subtle guide)
-	_draw_ellipse_stroke(Vector2.ZERO, detection_range, detection_range * 0.58, Color(0.2, 0.6, 0.8, 0.18), 1.0, 36)
+	# Debug Visuals (Range Ring + Targeting Beam + Reticle)
+	if show_debug_visuals:
+		# Range Indicator Ring (Subtle guide)
+		_draw_ellipse_stroke(Vector2.ZERO, detection_range, detection_range * 0.58, Color(0.2, 0.6, 0.8, 0.18), 1.0, 36)
 
-	# Target Visual Indicator (Line + Reticle when target acquired)
-	if current_target != null and is_instance_valid(current_target):
-		var target_local_pos: Vector2 = current_target.global_position - global_position
-		
-		# Targeting Beam Line from defender top crystal to enemy center
-		var beam_start: Vector2 = Vector2(0, -13)
-		draw_line(beam_start, target_local_pos, Color(1.0, 0.3, 0.3, 0.85), 2.0, true)
-		draw_line(beam_start, target_local_pos, Color(1.0, 0.8, 0.4, 0.5), 4.0, true)
+		# Target Visual Indicator (Line + Reticle when target acquired)
+		if current_target != null and is_instance_valid(current_target):
+			var target_local_pos: Vector2 = current_target.global_position - global_position
+			
+			# Targeting Beam Line from defender top crystal to enemy center
+			var beam_start: Vector2 = Vector2(0, -13)
+			draw_line(beam_start, target_local_pos, Color(1.0, 0.3, 0.3, 0.85), 2.0, true)
+			draw_line(beam_start, target_local_pos, Color(1.0, 0.8, 0.4, 0.5), 4.0, true)
 
-		# Target Reticle on enemy
-		_draw_reticle(target_local_pos)
+			# Target Reticle on enemy
+			_draw_reticle(target_local_pos)
 
 func _draw_reticle(local_pos: Vector2) -> void:
 	var reticle_color: Color = Color(1.0, 0.25, 0.25, 0.95)

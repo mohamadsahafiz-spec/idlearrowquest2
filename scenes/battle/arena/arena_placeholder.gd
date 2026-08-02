@@ -4,6 +4,10 @@ extends Node2D
 signal enemy_killed(total_kills: int)
 
 @export var respawn_delay: float = 1.0
+@export var show_debug_visuals: bool = false:
+	set(val):
+		show_debug_visuals = val
+		_apply_debug_settings()
 
 @onready var background: ArenaBackground = $Background
 @onready var rings: ArenaRings = $Rings
@@ -25,7 +29,16 @@ func _ready() -> void:
 	if defender != null:
 		defender.enemies_container = enemies_container
 		defender.projectiles_container = projectiles_container
+	_apply_debug_settings()
 	spawn_enemy()
+
+func _apply_debug_settings() -> void:
+	if enemy_path != null:
+		enemy_path.draw_path_guide = show_debug_visuals
+		enemy_path.queue_redraw()
+	if defender != null:
+		defender.show_debug_visuals = show_debug_visuals
+		defender.queue_redraw()
 
 func _process(delta: float) -> void:
 	if pending_respawn:

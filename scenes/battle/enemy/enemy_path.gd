@@ -9,7 +9,7 @@ extends Node2D
 	Vector2(270.0, 468.0)  # Central Defender Platform Destination
 ])
 
-@export var draw_path_guide: bool = true
+@export var draw_path_guide: bool = false
 
 func _ready() -> void:
 	pass

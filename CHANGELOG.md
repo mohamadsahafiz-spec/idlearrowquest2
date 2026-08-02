@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.9] - Unreleased
+
+### Added
+- Completed Milestone 1 Integration & Polish:
+  - Hid temporary debug visuals (path guide line, waypoint markers, detection range ring, targeting beam line, and lock-on reticle) by default for a clean gameplay presentation.
+  - Consolidated debug visual rendering behind a single disabled-by-default toggle (`show_debug_visuals = false`) on `ArenaPlaceholder`, `DefenderPlaceholder`, and `EnemyPath`.
+  - Refined HUD top bar kill counter with a styled container badge (`"Kill Enemies: X"`) positioned within top reserved layout boundaries.
+  - Stabilized and verified the complete infinite gameplay loop: Spawn -> Path Movement -> Auto-Targeting -> Projectile Firing -> Damage Calculations -> HP Bar & Popups -> Death Dissolution -> Coin Reward -> Continuous Respawning.
+
 ## [0.0.8] - Unreleased
 
 ### Added
