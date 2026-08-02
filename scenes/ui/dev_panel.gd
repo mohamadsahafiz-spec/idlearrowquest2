@@ -12,10 +12,31 @@ var save_system: SaveSystem = null
 var arena_placeholder: ArenaPlaceholder = null
 
 var show_confirm_reset_save: bool = false
+var press_flash_timer: float = 0.0
+var pressed_rect: Rect2 = Rect2()
 
 func _ready() -> void:
 	z_index = 100
 	mouse_filter = MOUSE_FILTER_STOP
+	custom_minimum_size = Vector2(540, 960)
+	size = Vector2(540, 960)
+	set_anchors_preset(Control.PRESET_FULL_RECT)
+
+func _process(delta: float) -> void:
+	if press_flash_timer > 0.0:
+		press_flash_timer -= delta
+		if press_flash_timer <= 0.0:
+			press_flash_timer = 0.0
+		queue_redraw()
+
+func _trigger_press_feedback(rect: Rect2) -> void:
+	pressed_rect = rect
+	press_flash_timer = 0.15
+	queue_redraw()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_gui_input(event)
 
 func _gui_input(event: InputEvent) -> void:
 	if not visible:
@@ -59,6 +80,7 @@ func _gui_input(event: InputEvent) -> void:
 		for i in range(1, 7):
 			var rect: Rect2 = Rect2(40 + (i - 1) * 75, 145, 65, 36)
 			if rect.has_point(pos):
+				_trigger_press_feedback(rect)
 				if maid_system != null:
 					maid_system.debug_set_party_count(i)
 				accept_event()
@@ -66,7 +88,9 @@ func _gui_input(event: InputEvent) -> void:
 				return
 
 		# Heal All
-		if Rect2(40, 190, 140, 36).has_point(pos):
+		var heal_rect: Rect2 = Rect2(40, 190, 140, 36)
+		if heal_rect.has_point(pos):
+			_trigger_press_feedback(heal_rect)
 			if arena_placeholder != null:
 				for m: DefenderPlaceholder in arena_placeholder.active_maids:
 					if is_instance_valid(m):
@@ -77,7 +101,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Kill Maid
-		if Rect2(190, 190, 140, 36).has_point(pos):
+		var kill_m_rect: Rect2 = Rect2(190, 190, 140, 36)
+		if kill_m_rect.has_point(pos):
+			_trigger_press_feedback(kill_m_rect)
 			if arena_placeholder != null:
 				var m: DefenderPlaceholder = arena_placeholder.get_alive_defender()
 				if m != null:
@@ -87,7 +113,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Kill All
-		if Rect2(340, 190, 140, 36).has_point(pos):
+		var kill_a_rect: Rect2 = Rect2(340, 190, 140, 36)
+		if kill_a_rect.has_point(pos):
+			_trigger_press_feedback(kill_a_rect)
 			if arena_placeholder != null:
 				for m: DefenderPlaceholder in arena_placeholder.active_maids:
 					if is_instance_valid(m) and m.current_hp > 0.0:
@@ -100,6 +128,7 @@ func _gui_input(event: InputEvent) -> void:
 		for w in range(1, 7):
 			var rect: Rect2 = Rect2(40 + (w - 1) * 75, 255, 65, 36)
 			if rect.has_point(pos):
+				_trigger_press_feedback(rect)
 				if stage_system != null:
 					stage_system.start_stage(1, w)
 				accept_event()
@@ -107,31 +136,42 @@ func _gui_input(event: InputEvent) -> void:
 				return
 
 		# Stage Adjustments
-		if Rect2(40, 300, 80, 36).has_point(pos):
+		var stg_prev: Rect2 = Rect2(40, 300, 80, 36)
+		var stg_next: Rect2 = Rect2(130, 300, 80, 36)
+		var stg_5: Rect2 = Rect2(220, 300, 80, 36)
+		var stg_10: Rect2 = Rect2(310, 300, 80, 36)
+		var stg_max: Rect2 = Rect2(400, 300, 80, 36)
+
+		if stg_prev.has_point(pos):
+			_trigger_press_feedback(stg_prev)
 			if stage_system != null:
 				stage_system.start_stage(max(1, stage_system.current_stage - 1), stage_system.current_world)
 			accept_event()
 			queue_redraw()
 			return
-		elif Rect2(130, 300, 80, 36).has_point(pos):
+		elif stg_next.has_point(pos):
+			_trigger_press_feedback(stg_next)
 			if stage_system != null:
 				stage_system.start_stage(stage_system.current_stage + 1, stage_system.current_world)
 			accept_event()
 			queue_redraw()
 			return
-		elif Rect2(220, 300, 80, 36).has_point(pos):
+		elif stg_5.has_point(pos):
+			_trigger_press_feedback(stg_5)
 			if stage_system != null:
 				stage_system.start_stage(5, stage_system.current_world)
 			accept_event()
 			queue_redraw()
 			return
-		elif Rect2(310, 300, 80, 36).has_point(pos):
+		elif stg_10.has_point(pos):
+			_trigger_press_feedback(stg_10)
 			if stage_system != null:
 				stage_system.start_stage(10, stage_system.current_world)
 			accept_event()
 			queue_redraw()
 			return
-		elif Rect2(400, 300, 80, 36).has_point(pos):
+		elif stg_max.has_point(pos):
+			_trigger_press_feedback(stg_max)
 			if stage_system != null:
 				var max_s: int = WorldRegistry.get_max_stages(stage_system.current_world)
 				stage_system.start_stage(max_s, stage_system.current_world)
@@ -140,7 +180,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Force Boss
-		if Rect2(40, 345, 140, 36).has_point(pos):
+		var boss_rect: Rect2 = Rect2(40, 345, 140, 36)
+		if boss_rect.has_point(pos):
+			_trigger_press_feedback(boss_rect)
 			if stage_system != null:
 				stage_system.state = StageSystem.State.BOSS_INCOMING
 				stage_system.state_timer = 0.05
@@ -151,7 +193,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Clear Stage
-		if Rect2(190, 345, 140, 36).has_point(pos):
+		var clr_stg: Rect2 = Rect2(190, 345, 140, 36)
+		if clr_stg.has_point(pos):
+			_trigger_press_feedback(clr_stg)
 			if stage_system != null:
 				stage_system.notify_enemy_killed(stage_system.state == StageSystem.State.BOSS_ACTIVE)
 			accept_event()
@@ -159,7 +203,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Clear World
-		if Rect2(340, 345, 140, 36).has_point(pos):
+		var clr_wld: Rect2 = Rect2(340, 345, 140, 36)
+		if clr_wld.has_point(pos):
+			_trigger_press_feedback(clr_wld)
 			if stage_system != null:
 				var max_s: int = WorldRegistry.get_max_stages(stage_system.current_world)
 				stage_system.start_stage(max_s, stage_system.current_world)
@@ -169,7 +215,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Endless Mode
-		if Rect2(40, 390, 440, 36).has_point(pos):
+		var endless_rect: Rect2 = Rect2(40, 390, 440, 36)
+		if endless_rect.has_point(pos):
+			_trigger_press_feedback(endless_rect)
 			if stage_system != null:
 				stage_system.is_endless_mode = not stage_system.is_endless_mode
 				stage_system.start_stage(501, 6)
@@ -178,30 +226,35 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# 3. ECONOMY / COMBAT
-		# +10K Gold
-		if Rect2(40, 455, 100, 36).has_point(pos):
+		var g10k: Rect2 = Rect2(40, 455, 100, 36)
+		var g1m: Rect2 = Rect2(150, 455, 100, 36)
+		var g0: Rect2 = Rect2(260, 455, 100, 36)
+		var g100k: Rect2 = Rect2(370, 455, 110, 36)
+
+		if g10k.has_point(pos):
+			_trigger_press_feedback(g10k)
 			if progression_system != null:
 				progression_system.add_gold(10000)
 			accept_event()
 			queue_redraw()
 			return
-		# +1M Gold
-		elif Rect2(150, 455, 100, 36).has_point(pos):
+		elif g1m.has_point(pos):
+			_trigger_press_feedback(g1m)
 			if progression_system != null:
 				progression_system.add_gold(1000000)
 			accept_event()
 			queue_redraw()
 			return
-		# Set Gold 0
-		elif Rect2(260, 455, 100, 36).has_point(pos):
+		elif g0.has_point(pos):
+			_trigger_press_feedback(g0)
 			if progression_system != null:
 				progression_system.gold = 0
 				progression_system.gold_changed.emit(0)
 			accept_event()
 			queue_redraw()
 			return
-		# Set 100K
-		elif Rect2(370, 455, 110, 36).has_point(pos):
+		elif g100k.has_point(pos):
+			_trigger_press_feedback(g100k)
 			if progression_system != null:
 				progression_system.gold = 100000
 				progression_system.gold_changed.emit(100000)
@@ -210,7 +263,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Restore HP
-		if Rect2(40, 500, 140, 36).has_point(pos):
+		var r_hp: Rect2 = Rect2(40, 500, 140, 36)
+		if r_hp.has_point(pos):
+			_trigger_press_feedback(r_hp)
 			if arena_placeholder != null:
 				for m: DefenderPlaceholder in arena_placeholder.active_maids:
 					if is_instance_valid(m):
@@ -221,7 +276,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Reset Upgrades
-		if Rect2(190, 500, 140, 36).has_point(pos):
+		var r_upg: Rect2 = Rect2(190, 500, 140, 36)
+		if r_upg.has_point(pos):
+			_trigger_press_feedback(r_upg)
 			if progression_system != null:
 				progression_system.attack_level = 1
 				progression_system.speed_level = 1
@@ -233,7 +290,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Fresh Baseline
-		if Rect2(340, 500, 140, 36).has_point(pos):
+		var f_base: Rect2 = Rect2(340, 500, 140, 36)
+		if f_base.has_point(pos):
+			_trigger_press_feedback(f_base)
 			if progression_system != null:
 				progression_system.attack_level = 1
 				progression_system.speed_level = 1
@@ -252,7 +311,9 @@ func _gui_input(event: InputEvent) -> void:
 
 		# 4. RESET & ISOLATION
 		# Reset Test/Run
-		if Rect2(40, 565, 215, 42).has_point(pos):
+		var r_test: Rect2 = Rect2(40, 565, 215, 42)
+		if r_test.has_point(pos):
+			_trigger_press_feedback(r_test)
 			if arena_placeholder != null:
 				arena_placeholder.reset_arena()
 			if stage_system != null:
@@ -262,7 +323,9 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Reset Save File
-		if Rect2(265, 565, 215, 42).has_point(pos):
+		var r_save: Rect2 = Rect2(265, 565, 215, 42)
+		if r_save.has_point(pos):
+			_trigger_press_feedback(r_save)
 			show_confirm_reset_save = true
 			accept_event()
 			queue_redraw()
@@ -365,6 +428,11 @@ func _draw() -> void:
 
 		_draw_btn(Rect2(80, 710, 180, 40), "CONFIRM ERASE", Color(0.6, 0.1, 0.1, 0.95), Color(1.0, 0.3, 0.3, 1.0))
 		_draw_btn(Rect2(280, 710, 180, 40), "CANCEL", Color(0.15, 0.2, 0.25, 0.95), Color(0.5, 0.6, 0.7, 0.9))
+
+	if press_flash_timer > 0.0 and pressed_rect.size != Vector2.ZERO:
+		var alpha: float = clampf(press_flash_timer / 0.15, 0.0, 1.0)
+		_draw_rounded_rect_filled(pressed_rect, 6.0, Color(1.0, 1.0, 1.0, 0.35 * alpha))
+		_draw_rounded_rect_stroke(pressed_rect, 6.0, Color(1.0, 0.9, 0.4, 0.9 * alpha), 2.0)
 
 func _draw_btn(rect: Rect2, label: String, bg: Color, stroke: Color) -> void:
 	var font: Font = ThemeDB.fallback_font

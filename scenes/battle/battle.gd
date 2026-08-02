@@ -237,6 +237,8 @@ func _on_restart_requested() -> void:
 func _on_dev_toggled() -> void:
 	if dev_panel != null:
 		dev_panel.visible = not dev_panel.visible
+		if dev_panel.visible:
+			move_child(dev_panel, get_child_count() - 1)
 
 func reset_to_fresh_state() -> void:
 	if stage_system != null:
