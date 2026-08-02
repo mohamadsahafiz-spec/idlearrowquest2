@@ -44,6 +44,8 @@ var base_attack: float = 15.0
 var base_attack_speed: float = 1.25
 var base_critical_chance: float = 0.05
 
+var liria_visual: LiriaVisual = null
+
 func _ready() -> void:
 	if stats == null:
 		stats = DefenderStats.new()
@@ -52,6 +54,13 @@ func _ready() -> void:
 	base_attack_speed = stats.attack_speed
 	base_critical_chance = stats.critical_chance
 	current_hp = max_hp
+
+	if custom_visual_node == null:
+		liria_visual = LiriaVisual.new()
+		liria_visual.name = "LiriaVisual"
+		add_child(liria_visual)
+		custom_visual_node = liria_visual
+
 	hp_changed.emit(current_hp, max_hp)
 
 func restore_base_stats() -> void:
@@ -61,6 +70,8 @@ func restore_base_stats() -> void:
 		stats.attack_speed = base_attack_speed
 		stats.critical_chance = base_critical_chance
 	current_hp = base_max_hp
+	if liria_visual != null:
+		liria_visual.is_defeated = false
 	hp_changed.emit(current_hp, base_max_hp)
 	queue_redraw()
 
@@ -70,6 +81,10 @@ func take_damage(amount: float) -> void:
 	current_hp = maxf(0.0, current_hp - amount)
 	hp_changed.emit(current_hp, max_hp)
 	hit_flash_timer = 0.15
+	if liria_visual != null:
+		liria_visual.trigger_hit()
+		if current_hp <= 0.0:
+			liria_visual.is_defeated = true
 	_add_damage_popup(amount)
 	queue_redraw()
 	if current_hp <= 0.0:
@@ -125,9 +140,12 @@ func _fire_projectile() -> void:
 	if current_target == null or not is_instance_valid(current_target) or not _is_enemy_in_range(current_target):
 		return
 
+	if liria_visual != null:
+		liria_visual.trigger_attack(current_target.global_position)
+
 	var proj: ProjectilePlaceholder = PROJECTILE_SCENE.instantiate() as ProjectilePlaceholder
 	if proj != null:
-		var spawn_pos: Vector2 = global_position + Vector2(0, -13)
+		var spawn_pos: Vector2 = liria_visual.get_bow_launch_position() if liria_visual != null else global_position + Vector2(0, -13)
 		proj.global_position = spawn_pos
 		proj.setup(current_target)
 		var hit_info: Dictionary = stats.calculate_hit_damage() if stats != null else {"damage": damage, "is_critical": false}

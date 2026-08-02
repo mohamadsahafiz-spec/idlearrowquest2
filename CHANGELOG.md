@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1] - Unreleased
+
+### Added
+- **Maid #001 — Liria Visual Layer**: Replaced defender placeholder visuals with a custom vector chibi presentation layer for Liria (silver hair, violet eyes, rookie maid dress, starter bow + quiver).
+- **Procedural Animations & Bow Launch**: Idle breathing bob, attack recoil/string pull aiming at targets, hit reaction flash, defeat pose, and projectile origin aligned with bow string.
+
 ## [0.7.0] - Unreleased
 
 ### Added
