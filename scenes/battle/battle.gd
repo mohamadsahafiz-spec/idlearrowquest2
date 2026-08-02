@@ -7,6 +7,7 @@ var stage_system: StageSystem = null
 var progression_system: ProgressionSystem = null
 var equipment_system: EquipmentSystem = null
 var skill_system: SkillSystem = null
+var maid_system: MaidSystem = null
 var save_system: SaveSystem = null
 
 func _ready() -> void:
@@ -22,6 +23,10 @@ func _ready() -> void:
 	equipment_system.name = "EquipmentSystem"
 	add_child(equipment_system)
 
+	maid_system = MaidSystem.new()
+	maid_system.name = "MaidSystem"
+	add_child(maid_system)
+
 	skill_system = SkillSystem.new()
 	skill_system.name = "SkillSystem"
 	skill_system.z_index = 10
@@ -36,6 +41,7 @@ func _ready() -> void:
 	save_system.progression_system = progression_system
 	save_system.equipment_system = equipment_system
 	save_system.skill_system = skill_system
+	save_system.maid_system = maid_system
 	add_child(save_system)
 
 	if equipment_system != null:

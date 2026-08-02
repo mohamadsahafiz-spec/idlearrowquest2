@@ -8,6 +8,7 @@ var stage_system: StageSystem = null
 var progression_system: ProgressionSystem = null
 var equipment_system: EquipmentSystem = null
 var skill_system: SkillSystem = null
+var maid_system: MaidSystem = null
 
 var auto_upgrade_enabled: bool = false
 var auto_equip_enabled: bool = false
@@ -114,7 +115,8 @@ func save_game() -> void:
 		"auto_equip": auto_equip_enabled,
 		"auto_skills": auto_skills,
 		"inventory": inv_arr,
-		"equipped": eq_dict
+		"equipped": eq_dict,
+		"maid_system": maid_system.to_dict() if maid_system != null else {}
 	}
 
 	var json_str: String = JSON.stringify(save_data)
@@ -181,6 +183,10 @@ func apply_save_data(data: Dictionary) -> float:
 		skill_system.freeze_auto = bool(auto_skills.get("freeze", false))
 		skill_system.overdrive_auto = bool(auto_skills.get("overdrive", false))
 		skill_system.skill_state_changed.emit()
+
+	if maid_system != null:
+		var maid_data: Dictionary = data.get("maid_system", {})
+		maid_system.from_dict(maid_data)
 
 	if equipment_system != null:
 		equipment_system.inventory.clear()

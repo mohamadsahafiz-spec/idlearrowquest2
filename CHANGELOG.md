@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4] - Unreleased
+
+### Added
+- **Battle Maid Registry & Roster**: Added `MaidRegistry` supporting 6 Battle Maid slots (#001 Liria unlocked by default, #002-#006 as locked placeholders).
+- **Recruitment & Party Management**: Modular recruitment system and 1-6 slot party manager with validation against duplicate/locked assignments and reordering.
+- **Save Migration & Maid Progression Foundation**: Persisted unlocked maids, recruitment state, and 1-6 party composition with automatic default migration for legacy save files.
+
 ## [0.7.3] - Unreleased
 
 ### Added
