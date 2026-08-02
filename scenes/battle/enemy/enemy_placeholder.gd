@@ -45,6 +45,8 @@ var is_dead: bool = false
 var death_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
 var reward_popups: Array[Dictionary] = []
+var hit_sparks: Array[Dictionary] = []
+var hit_flash_timer: float = 0.0
 
 func apply_stats() -> void:
 	if stats == null:
@@ -62,6 +64,8 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 		return
 
 	current_hp = maxf(0.0, current_hp - amount)
+	hit_flash_timer = 0.14
+	_add_hit_spark(is_critical)
 	_add_damage_popup(amount, is_critical)
 
 	if current_hp <= 0.0:
@@ -77,14 +81,27 @@ func _die() -> void:
 	_add_reward_popup(coin_reward)
 	enemy_died.emit(coin_reward, global_position)
 
+func _add_hit_spark(is_critical: bool = false) -> void:
+	var spark_info: Dictionary = {
+		"life": 0.22 if is_critical else 0.14,
+		"max_life": 0.22 if is_critical else 0.14,
+		"is_critical": is_critical
+	}
+	hit_sparks.append(spark_info)
+
 func _add_damage_popup(amount: float, is_critical: bool = false) -> void:
+	var popup_count: int = damage_popups.size()
+	var x_stagger: float = randf_range(-14.0, 14.0) + (sin(popup_count * 1.8) * 8.0)
+	var y_base: float = -radius * 1.3 - (30.0 if is_critical else 22.0) - (popup_count * 6.0)
+	y_base = clampf(y_base, -radius * 1.3 - 60.0, -radius * 1.3 - 20.0)
+
 	var text_label: String = ("CRIT -" if is_critical else "-") + str(int(amount))
 	var popup_info: Dictionary = {
 		"text": text_label,
 		"is_critical": is_critical,
-		"offset": Vector2(randf_range(-8.0, 8.0), -radius * 1.3 - (26.0 if is_critical else 22.0)),
-		"life": 1.0 if is_critical else 0.8,
-		"max_life": 1.0 if is_critical else 0.8
+		"offset": Vector2(x_stagger, y_base),
+		"life": 1.15 if is_critical else 0.85,
+		"max_life": 1.15 if is_critical else 0.85
 	}
 	damage_popups.append(popup_info)
 
@@ -107,6 +124,9 @@ func start_path(points: PackedVector2Array) -> void:
 		is_moving = false
 
 func _process(delta: float) -> void:
+	if hit_flash_timer > 0.0:
+		hit_flash_timer = maxf(0.0, hit_flash_timer - delta)
+
 	if is_dead:
 		death_timer -= delta
 		_update_popups(delta)
@@ -187,6 +207,16 @@ func _update_popups(delta: float) -> void:
 			reward_popups.remove_at(j)
 		j -= 1
 
+	# Update hit sparks
+	var k: int = hit_sparks.size() - 1
+	while k >= 0:
+		var spark: Dictionary = hit_sparks[k]
+		var spark_life: float = float(spark["life"]) - delta
+		spark["life"] = spark_life
+		if spark_life <= 0.0:
+			hit_sparks.remove_at(k)
+		k -= 1
+
 func _draw() -> void:
 	if is_dead:
 		_draw_death_visual()
@@ -214,8 +244,19 @@ func _draw() -> void:
 		Vector2(0, radius * 0.9),
 		Vector2(-radius, 0)
 	])
-	draw_colored_polygon(pts, enemy_color)
+
+	var body_col: Color = enemy_color
+	if hit_flash_timer > 0.0:
+		var flash_ratio: float = hit_flash_timer / 0.14
+		body_col = enemy_color.lerp(Color(1.0, 1.0, 1.0, 1.0), flash_ratio * 0.7)
+
+	draw_colored_polygon(pts, body_col)
 	_draw_polyline_closed(pts, outline_color, 2.0)
+
+	# Hit Flash Overlay Ring
+	if hit_flash_timer > 0.0:
+		var flash_alpha: float = clampf(hit_flash_timer / 0.14, 0.0, 1.0)
+		_draw_polyline_closed(pts, Color(1.0, 1.0, 0.8, flash_alpha * 0.9), 3.0)
 
 	# Core Glow Center
 	var core_color: Color = Color(1.0, 0.9, 0.4, 0.95)
@@ -225,7 +266,21 @@ func _draw() -> void:
 		core_color = Color(0.4, 0.95, 1.0, 0.95)
 	elif stats != null and stats.tier == EnemyStats.Tier.STRONG:
 		core_color = Color(1.0, 0.95, 0.5, 0.95)
+
+	if hit_flash_timer > 0.0:
+		core_color = Color(1.0, 1.0, 0.9, 1.0)
+
 	draw_circle(Vector2(0, -radius * 0.2), radius * 0.4, core_color)
+
+	# Active Hit Sparks Ring
+	for spark: Dictionary in hit_sparks:
+		var s_life: float = float(spark["life"])
+		var s_max: float = float(spark["max_life"])
+		var s_alpha: float = clampf(s_life / maxf(0.001, s_max), 0.0, 1.0)
+		var is_crit_spark: bool = bool(spark["is_critical"])
+		var spark_rad: float = radius * (1.6 - s_alpha * 0.5) if is_crit_spark else radius * (1.3 - s_alpha * 0.3)
+		var spark_col: Color = Color(1.0, 0.88, 0.2, s_alpha * 0.95) if is_crit_spark else Color(1.0, 0.45, 0.35, s_alpha * 0.8)
+		draw_arc(Vector2(0, -radius * 0.2), spark_rad, 0, TAU, 20, spark_col, 2.0 if is_crit_spark else 1.5, true)
 
 	# Enemy HP Bar
 	_draw_hp_bar()
@@ -238,7 +293,7 @@ func _draw() -> void:
 
 func _draw_death_visual() -> void:
 	var fade_alpha: float = clampf(death_timer / maxf(0.001, death_duration), 0.0, 1.0)
-	
+
 	# Ground Shadow Fading
 	var shadow_pos: Vector2 = Vector2(0, 8)
 	_draw_ellipse_filled(shadow_pos, radius * 1.2 * fade_alpha, radius * 0.6 * fade_alpha, Color(0.02, 0.04, 0.06, 0.5 * fade_alpha))
@@ -310,18 +365,28 @@ func _draw_damage_popups() -> void:
 		var text_str: String = popup["text"] as String
 		var is_crit: bool = popup.get("is_critical", false) as bool
 
+		var progress: float = 1.0 - (life / max_life)
+		var pop_bounce: float = sin(clampf(progress * PI * 2.0, 0.0, PI)) * (6.0 if is_crit else 3.0)
+		var render_pos: Vector2 = text_pos + Vector2(0.0, -pop_bounce)
+
 		if is_crit:
 			var font_size: int = 15
-			# Drop shadow
-			draw_string(font, text_pos + Vector2(1.5, 1.5), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.9))
-			# Main text in vibrant golden amber
-			draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.85, 0.2, alpha))
+			# CRIT Golden Flare Arc
+			var flare_alpha: float = alpha * clampf(1.0 - progress * 2.5, 0.0, 1.0)
+			if flare_alpha > 0.0:
+				draw_arc(render_pos + Vector2(0, -4), 16.0 * (1.0 + progress * 0.5), 0, TAU, 16, Color(1.0, 0.85, 0.2, flare_alpha * 0.7), 2.0, true)
+
+			# Drop shadow / Thick black outline
+			draw_string(font, render_pos + Vector2(1.5, 1.5), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.95))
+			draw_string(font, render_pos + Vector2(-1.0, -1.0), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.85))
+			# Main text in prominent golden amber
+			draw_string(font, render_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.9, 0.25, alpha))
 		else:
 			var font_size: int = 12
-			# Drop shadow
-			draw_string(font, text_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.8))
-			# Main text
-			draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.35, 0.35, alpha))
+			# Drop shadow / outline
+			draw_string(font, render_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.9))
+			# Main text in clean bright white-pink
+			draw_string(font, render_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.95, 0.95, alpha))
 
 func _draw_reward_popups() -> void:
 	var font: Font = ThemeDB.fallback_font

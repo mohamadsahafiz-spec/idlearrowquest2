@@ -12,6 +12,7 @@ const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/pr
 var current_target: EnemyPlaceholder = null
 var fire_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
+var hit_flash_timer: float = 0.0
 
 var max_hp: float:
 	get:
@@ -42,19 +43,27 @@ func take_damage(amount: float) -> void:
 	if current_hp <= 0.0:
 		return
 	current_hp = maxf(0.0, current_hp - amount)
+	hit_flash_timer = 0.15
 	_add_damage_popup(amount)
 	queue_redraw()
 
 func _add_damage_popup(amount: float) -> void:
+	var popup_count: int = damage_popups.size()
+	var x_stagger: float = randf_range(-12.0, 12.0) + (cos(popup_count * 2.1) * 6.0)
+	var y_base: float = -32.0 - (popup_count * 5.0)
+	y_base = clampf(y_base, -60.0, -26.0)
+
 	var popup_info: Dictionary = {
 		"text": "-" + str(int(amount)),
-		"offset": Vector2(randf_range(-6.0, 6.0), -32.0),
-		"life": 0.8,
-		"max_life": 0.8
+		"offset": Vector2(x_stagger, y_base),
+		"life": 0.9,
+		"max_life": 0.9
 	}
 	damage_popups.append(popup_info)
 
 func _process(delta: float) -> void:
+	if hit_flash_timer > 0.0:
+		hit_flash_timer = maxf(0.0, hit_flash_timer - delta)
 	_update_popups(delta)
 	_update_target()
 	_update_firing(delta)
@@ -158,6 +167,12 @@ func _draw() -> void:
 	_draw_polyline_closed(crystal_pts, Color(0.8, 0.95, 1.0, 1.0), 1.5)
 	draw_circle(Vector2(0, -13), 3.0, Color(1.0, 1.0, 1.0, 0.95))
 
+	# Hit Flash Pulse Ring
+	if hit_flash_timer > 0.0:
+		var flash_alpha: float = clampf(hit_flash_timer / 0.15, 0.0, 1.0)
+		draw_arc(Vector2(0, -6), 22.0, 0, TAU, 24, Color(1.0, 0.25, 0.25, flash_alpha * 0.8), 2.5, true)
+		draw_circle(Vector2(0, -13), 6.0, Color(1.0, 0.4, 0.3, flash_alpha * 0.7))
+
 	# Defender HP Bar
 	_draw_hp_bar()
 
@@ -244,8 +259,13 @@ func _draw_damage_popups() -> void:
 		var text_pos: Vector2 = popup["offset"] as Vector2
 		var text_str: String = popup["text"] as String
 
-		# Drop shadow
-		draw_string(font, text_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.0, 0.0, 0.0, alpha * 0.8))
-		# Main text in vibrant crimson/orange
-		draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.3, 0.2, alpha))
+		var progress: float = 1.0 - (life / max_life)
+		var pop_bounce: float = sin(clampf(progress * PI, 0.0, PI)) * 3.0
+		var render_pos: Vector2 = text_pos + Vector2(0.0, -pop_bounce)
+
+		# Thick dark drop shadow / outline
+		draw_string(font, render_pos + Vector2(1.5, 1.5), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.1, 0.0, 0.0, alpha * 0.95))
+		draw_string(font, render_pos + Vector2(-1.0, -1.0), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.1, 0.0, 0.0, alpha * 0.85))
+		# Main text in distinct vivid crimson-orange
+		draw_string(font, render_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.32, 0.25, alpha))
 

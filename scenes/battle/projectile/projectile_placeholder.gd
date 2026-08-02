@@ -46,16 +46,27 @@ func _on_hit_target() -> void:
 			target.take_damage(damage, is_critical)
 
 func _draw() -> void:
-	# Projectile visual: glowing energetic sphere with shadow and core
+	# Projectile visual: glowing energetic sphere with shadow, trail and core
 	# Ground Shadow
 	_draw_ellipse_filled(Vector2(0, 4), 6.0, 3.0, Color(0.02, 0.04, 0.06, 0.4))
-	
+
+	var aura_color: Color = Color(1.0, 0.85, 0.2, 0.55) if is_critical else Color(0.3, 0.85, 1.0, 0.45)
+	var body_color: Color = Color(1.0, 0.9, 0.3, 1.0) if is_critical else Color(0.4, 0.9, 1.0, 0.95)
+	var aura_radius: float = 9.0 if is_critical else 7.0
+	var body_radius: float = 5.0 if is_critical else 4.0
+
+	# Trailing motion flare
+	if target != null and is_instance_valid(target):
+		var dir_to_target: Vector2 = (target.global_position - global_position).normalized()
+		var tail_vec: Vector2 = -dir_to_target * (10.0 if is_critical else 7.0)
+		draw_line(Vector2.ZERO, tail_vec, aura_color, body_radius * 1.8)
+
 	# Outer aura
-	draw_circle(Vector2.ZERO, 7.0, Color(1.0, 0.8, 0.3, 0.4))
+	draw_circle(Vector2.ZERO, aura_radius, aura_color)
 	# Inner projectile body
-	draw_circle(Vector2.ZERO, 4.0, Color(1.0, 0.9, 0.4, 0.95))
+	draw_circle(Vector2.ZERO, body_radius, body_color)
 	# Bright core
-	draw_circle(Vector2.ZERO, 2.0, Color(1.0, 1.0, 1.0, 1.0))
+	draw_circle(Vector2.ZERO, body_radius * 0.5, Color(1.0, 1.0, 1.0, 1.0))
 
 func _draw_ellipse_filled(pos: Vector2, rx: float, ry: float, color: Color, segments: int = 16) -> void:
 	var pts: PackedVector2Array = PackedVector2Array()

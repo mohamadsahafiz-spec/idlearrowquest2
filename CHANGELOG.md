@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.8] - Unreleased
+
+### Added
+- Implemented Combat Presentation & Milestone 2 Combat Replica Integration:
+  - **Damage Number Presentation**:
+    - Improved readability with crisp drop shadows and outlines.
+    - Normal damage numbers remain clean and lightweight (`-15`).
+    - Critical hits prominently display `"CRIT -30"` in vibrant golden amber with larger font scale, scale pop bounce, and starburst arc.
+    - Enemy damage against defender is visually distinct (`-10`) rendered in vivid crimson-orange with dark outline and pop bounce.
+    - Prevented heavy damage number overlap during rapid hits by implementing horizontal and vertical position staggering.
+  - **Combat Feedback Polish**:
+    - Added Godot-native hit flash highlight rim and expanding hit spark rings on enemy `take_damage`.
+    - Added hit flash pulse ring around defender shield and crystal when taking damage.
+    - Added projectile trailing flare and distinct critical projectile visual (golden starburst aura & tail).
+    - Polished enemy death dissolve feedback with fading shadow, expanding burst ring, core spark, and dissolving diamond line fragments.
+    - Preserved distinct visual styling and tier labels for Normal, Strong, Elite, and Boss enemies.
+  - **Milestone 2 Integration & Stability**:
+    - Verified complete combat pipeline: enemy spawn → movement → defender targeting → projectile firing → normal/critical damage → enemy HP → enemy attack → defender HP → enemy death → reward → kill counter → respawn.
+    - Confirmed shared combat pipeline across all enemy tiers (Normal, Strong, Elite, Boss).
+    - Preserved `test_spawn_boss = false` by default in `ArenaPlaceholder`.
+    - Maintained zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.7] - Unreleased
 
 ### Added
