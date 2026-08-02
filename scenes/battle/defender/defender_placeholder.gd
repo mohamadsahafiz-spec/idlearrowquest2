@@ -57,7 +57,9 @@ func _fire_projectile() -> void:
 		var spawn_pos: Vector2 = global_position + Vector2(0, -13)
 		proj.global_position = spawn_pos
 		proj.setup(current_target)
-		proj.damage = damage
+		var hit_info: Dictionary = stats.calculate_hit_damage() if stats != null else {"damage": damage, "is_critical": false}
+		proj.damage = float(hit_info["damage"])
+		proj.is_critical = bool(hit_info["is_critical"])
 		if projectiles_container != null:
 			projectiles_container.add_child(proj)
 		elif get_parent() != null:

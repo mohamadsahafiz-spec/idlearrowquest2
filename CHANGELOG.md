@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.3] - Unreleased
+
+### Added
+- Implemented critical hits powered by `DefenderStats`:
+  - Added `calculate_hit_damage()`, `get_critical_chance()`, and `get_critical_damage_multiplier()` methods to `DefenderStats` using `critical_chance` and `critical_damage` stats as single source of truth.
+  - Updated `DefenderPlaceholder` to roll critical hits when firing projectiles (`base_damage` or `base_damage * critical_damage`).
+  - Passed critical hit state through `ProjectilePlaceholder` to `EnemyPlaceholder.take_damage(amount, is_critical)`.
+  - Added distinct floating damage numbers for critical hits (e.g. `"CRIT -30"` rendered in golden yellow at larger font scale).
+  - Preserved all existing combat loop, targeting, range, death, reward, respawn, and kill-count behavior with zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.2] - Unreleased
 
 ### Added

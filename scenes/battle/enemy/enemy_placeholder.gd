@@ -36,12 +36,12 @@ func _ready() -> void:
 		stats = EnemyStats.new()
 	current_hp = max_hp
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, is_critical: bool = false) -> void:
 	if is_dead:
 		return
 
 	current_hp = maxf(0.0, current_hp - amount)
-	_add_damage_popup(amount)
+	_add_damage_popup(amount, is_critical)
 
 	if current_hp <= 0.0:
 		_die()
@@ -55,12 +55,14 @@ func _die() -> void:
 	_add_reward_popup(coin_reward)
 	enemy_died.emit(coin_reward, global_position)
 
-func _add_damage_popup(amount: float) -> void:
+func _add_damage_popup(amount: float, is_critical: bool = false) -> void:
+	var text_label: String = ("CRIT -" if is_critical else "-") + str(int(amount))
 	var popup_info: Dictionary = {
-		"text": "-" + str(int(amount)),
-		"offset": Vector2(randf_range(-6.0, 6.0), -radius * 1.3 - 22.0),
-		"life": 0.8,
-		"max_life": 0.8
+		"text": text_label,
+		"is_critical": is_critical,
+		"offset": Vector2(randf_range(-8.0, 8.0), -radius * 1.3 - (26.0 if is_critical else 22.0)),
+		"life": 1.0 if is_critical else 0.8,
+		"max_life": 1.0 if is_critical else 0.8
 	}
 	damage_popups.append(popup_info)
 
@@ -228,11 +230,20 @@ func _draw_damage_popups() -> void:
 		var alpha: float = clampf(life / max_life, 0.0, 1.0)
 		var text_pos: Vector2 = popup["offset"] as Vector2
 		var text_str: String = popup["text"] as String
+		var is_crit: bool = popup.get("is_critical", false) as bool
 
-		# Drop shadow
-		draw_string(font, text_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.0, 0.0, 0.0, alpha * 0.8))
-		# Main text
-		draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.35, 0.35, alpha))
+		if is_crit:
+			var font_size: int = 15
+			# Drop shadow
+			draw_string(font, text_pos + Vector2(1.5, 1.5), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.9))
+			# Main text in vibrant golden amber
+			draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.85, 0.2, alpha))
+		else:
+			var font_size: int = 12
+			# Drop shadow
+			draw_string(font, text_pos + Vector2(1, 1), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, alpha * 0.8))
+			# Main text
+			draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(1.0, 0.35, 0.35, alpha))
 
 func _draw_reward_popups() -> void:
 	var font: Font = ThemeDB.fallback_font

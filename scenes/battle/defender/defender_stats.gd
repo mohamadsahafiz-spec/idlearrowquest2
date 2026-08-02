@@ -15,3 +15,18 @@ func get_attack_damage() -> float:
 
 func get_attack_range() -> float:
 	return range
+
+func get_critical_chance() -> float:
+	return critical_chance
+
+func get_critical_damage_multiplier() -> float:
+	return critical_damage
+
+func calculate_hit_damage() -> Dictionary:
+	var is_crit: bool = randf() < maxf(0.0, critical_chance)
+	var base_dmg: float = get_attack_damage()
+	var final_dmg: float = base_dmg * (get_critical_damage_multiplier() if is_crit else 1.0)
+	return {
+		"damage": final_dmg,
+		"is_critical": is_crit
+	}
