@@ -19,6 +19,8 @@ enum State {
 	DEFEAT
 }
 
+@export var current_world: int = 1
+@export var highest_unlocked_world: int = 1
 @export var current_stage: int = 1
 @export var total_waves: int = 3
 @export var wave_transition_duration: float = 1.8
@@ -34,13 +36,31 @@ var banner_text: String = ""
 var state_timer: float = 0.0
 
 var active_boss: EnemyPlaceholder = null
-var is_world_1_completed: bool = false
+var completed_worlds: Array[int] = []
+var is_endless_mode: bool = false
+
+var is_world_1_completed: bool:
+	get:
+		return completed_worlds.has(1)
+	set(val):
+		if val and not completed_worlds.has(1):
+			completed_worlds.append(1)
 
 func _ready() -> void:
-	start_stage(current_stage)
+	start_stage(current_stage, current_world)
 
-func start_stage(stage_num: int) -> void:
-	current_stage = clampi(stage_num, 1, 10)
+func start_stage(stage_num: int, world_id: int = -1) -> void:
+	if world_id > 0:
+		current_world = world_id
+	if current_world > highest_unlocked_world:
+		highest_unlocked_world = current_world
+
+	var max_stg: int = WorldRegistry.get_max_stages(current_world)
+	if is_endless_mode:
+		current_stage = max(1, stage_num)
+	else:
+		current_stage = clampi(stage_num, 1, max_stg)
+
 	current_wave = 1
 	banner_text = ""
 	state = State.WAVE_ACTIVE
@@ -106,11 +126,21 @@ func notify_enemy_killed(is_boss: bool = false) -> void:
 func get_boss_title() -> String:
 	if active_boss != null and active_boss.stats != null and not active_boss.stats.enemy_name.is_empty():
 		return active_boss.stats.enemy_name
-	match current_stage:
-		5: return "MINI BOSS — Goblin Captain"
-		8: return "WORLD BOSS — Orc Warlord"
-		10: return "FINAL BOSS — Young Crimson Dragon"
-		_: return "STAGE " + str(current_stage) + " BOSS"
+	if current_world == 1:
+		match current_stage:
+			5: return "MINI BOSS — Goblin Captain"
+			8: return "WORLD BOSS — Orc Warlord"
+			10: return "FINAL BOSS — Young Crimson Dragon"
+			_: return "STAGE " + str(current_stage) + " BOSS"
+	var max_stg: int = WorldRegistry.get_max_stages(current_world)
+	var world_name: String = WorldRegistry.get_world_name(current_world)
+	if current_stage == max_stg:
+		return "FINAL BOSS — " + world_name + " Guardian"
+	elif current_stage % 10 == 0:
+		return "WORLD BOSS"
+	elif current_stage % 5 == 0:
+		return "MINI BOSS"
+	return "STAGE " + str(current_stage) + " BOSS"
 
 func register_boss(boss_node: EnemyPlaceholder) -> void:
 	active_boss = boss_node
@@ -142,13 +172,19 @@ func _on_boss_killed() -> void:
 	active_boss = null
 	boss_state_changed.emit(false, "", 0.0, 0.0)
 	state = State.STAGE_VICTORY
-	banner_text = "WORLD 1 CLEARED!" if current_stage >= 10 else ""
+	var max_stg: int = WorldRegistry.get_max_stages(current_world)
+	if is_endless_mode:
+		banner_text = "STAGE " + str(current_stage) + " CLEARED!"
+	elif current_stage >= max_stg:
+		banner_text = WorldRegistry.get_world_name(current_world).to_upper() + " CLEARED!"
+		if not completed_worlds.has(current_world):
+			completed_worlds.append(current_world)
+		world_completed.emit(current_world)
+	else:
+		banner_text = ""
 	banner_text_changed.emit(banner_text)
 	victory_overlay_changed.emit(true, current_stage)
 	state_timer = victory_duration
-	if current_stage >= 10:
-		is_world_1_completed = true
-		world_completed.emit(1)
 
 func _process(delta: float) -> void:
 	match state:
@@ -167,10 +203,23 @@ func _process(delta: float) -> void:
 			state_timer -= delta
 			if state_timer <= 0.0:
 				victory_overlay_changed.emit(false, current_stage)
-				if current_stage < 10:
+				var max_stg: int = WorldRegistry.get_max_stages(current_world)
+				if is_endless_mode:
+					start_stage(current_stage + 1)
+				elif current_stage < max_stg:
 					start_stage(current_stage + 1)
 				else:
-					banner_text = "ROYAL KINGDOM CLEARED!"
-					banner_text_changed.emit(banner_text)
-					spawn_allowed_changed.emit(false)
+					if WorldRegistry.is_last_world(current_world):
+						is_endless_mode = true
+						banner_text = "ENDLESS MODE UNLOCKED!"
+						banner_text_changed.emit(banner_text)
+						start_stage(current_stage + 1)
+					else:
+						var next_w: int = WorldRegistry.get_next_world_id(current_world)
+						current_world = next_w
+						if next_w > highest_unlocked_world:
+							highest_unlocked_world = next_w
+						banner_text = WorldRegistry.get_world_name(current_world) + " UNLOCKED!"
+						banner_text_changed.emit(banner_text)
+						start_stage(1, current_world)
 

@@ -99,7 +99,11 @@ func save_game() -> void:
 
 	var save_data: Dictionary = {
 		"timestamp": Time.get_unix_time_from_system(),
+		"world": stage_system.current_world,
 		"stage": stage_system.current_stage,
+		"highest_unlocked_world": stage_system.highest_unlocked_world,
+		"completed_worlds": stage_system.completed_worlds,
+		"is_endless_mode": stage_system.is_endless_mode,
 		"world_1_completed": stage_system.is_world_1_completed,
 		"gold": progression_system.gold,
 		"attack_level": progression_system.attack_level,
@@ -145,8 +149,19 @@ func apply_save_data(data: Dictionary) -> float:
 	var saved_time: float = float(data.get("timestamp", 0.0))
 
 	if stage_system != null:
-		stage_system.is_world_1_completed = bool(data.get("world_1_completed", false))
-		stage_system.start_stage(int(data.get("stage", 1)))
+		var loaded_world: int = int(data.get("world", 1))
+		var loaded_stage: int = int(data.get("stage", 1))
+		stage_system.highest_unlocked_world = int(data.get("highest_unlocked_world", loaded_world))
+		stage_system.is_endless_mode = bool(data.get("is_endless_mode", false))
+		
+		var comp_w_arr: Array = data.get("completed_worlds", [])
+		stage_system.completed_worlds.clear()
+		for w in comp_w_arr:
+			stage_system.completed_worlds.append(int(w))
+		if bool(data.get("world_1_completed", false)) and not stage_system.completed_worlds.has(1):
+			stage_system.completed_worlds.append(1)
+		
+		stage_system.start_stage(loaded_stage, loaded_world)
 
 	if progression_system != null:
 		progression_system.gold = int(data.get("gold", 0))

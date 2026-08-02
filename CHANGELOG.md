@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3] - Unreleased
+
+### Added
+- **Six-World Registry**: Centralized data-driven `WorldRegistry` registering Royal Kingdom (10), Enchanted Forest (30), Frozen Kingdom (60), Gothic Realm (100), Infernal Realm (250), and Celestial Realm (500).
+- **World Progression Core**: Clean campaign progression flow between worlds with world unlock, stage resets, and Endless Mode trigger upon clearing Celestial Realm Stage 500.
+- **Save State Persistence**: Multi-world save state recording current world, highest unlocked world, completed worlds, and endless mode, with backwards-compatible loading defaults.
+
 ## [0.7.2] - Unreleased
 
 ### Added

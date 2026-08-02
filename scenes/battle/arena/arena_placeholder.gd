@@ -66,7 +66,8 @@ func _ready() -> void:
 
 func _on_stage_updated(stage_num: int, _wave: int, _total_w: int, _k: int, _req: int) -> void:
 	if world_presentation != null:
-		world_presentation.update_stage(stage_num)
+		var w_id: int = stage_system.current_world if stage_system != null else 1
+		world_presentation.update_stage(stage_num, w_id)
 
 func _on_defender_died() -> void:
 	pending_respawn = false
