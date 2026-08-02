@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.7] - Unreleased
+
+### Added
+- **Individual Maid Combat Foundation**: Each active Maid owns an independent runtime combat profile (HP, Attack, Speed, Critical) while preserving Liria's player progression.
+- **Combat Role Architecture**: Generic combat role foundation supporting RANGED, MELEE, MAGIC, and SUPPORT definitions with targeting preferences, range, and skill hooks.
+- **Per-Maid Equipment Ownership**: Per-Maid equipment slot tracking (Weapon, Armor, Ring, Boots) with independent equipment stat calculations per Maid.
+- **Individual Defeat & Recovery**: Maids fall independently upon HP depletion; battle continues until all active party members fall.
+- **Combat Contribution Tracking**: Real-time per-Maid tracking for damage dealt, kills, critical hits, and deaths with query API hooks.
+
 ## [0.7.6] - Unreleased
 
 ### Added

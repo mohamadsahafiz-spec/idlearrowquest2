@@ -86,6 +86,16 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 
 	queue_redraw()
 
+func take_damage_from_maid(amount: float, is_critical: bool = false, source_maid: DefenderPlaceholder = null) -> void:
+	if is_dead:
+		return
+	if is_instance_valid(source_maid):
+		source_maid.record_damage(amount, is_critical)
+	var was_alive: bool = not is_dead
+	take_damage(amount, is_critical)
+	if was_alive and is_dead and is_instance_valid(source_maid):
+		source_maid.record_kill()
+
 func _die() -> void:
 	is_dead = true
 	is_moving = false
@@ -180,10 +190,10 @@ func _update_attacking(delta: float) -> void:
 	if not is_attacking or is_dead:
 		return
 
-	if defender_target == null or not is_instance_valid(defender_target):
+	if defender_target == null or not is_instance_valid(defender_target) or defender_target.current_hp <= 0.0 or defender_target.is_defeated:
 		_find_defender_target()
 
-	if defender_target != null and is_instance_valid(defender_target):
+	if defender_target != null and is_instance_valid(defender_target) and defender_target.current_hp > 0.0 and not defender_target.is_defeated:
 		var cd: float = attack_cooldown
 		attack_timer -= delta
 		if attack_timer > cd:
@@ -196,7 +206,9 @@ func _update_attacking(delta: float) -> void:
 func _find_defender_target() -> void:
 	if get_parent() != null and get_parent().get_parent() != null:
 		var arena: Node = get_parent().get_parent()
-		if arena.has_node("DefenderPlaceholder"):
+		if arena.has_method("get_alive_defender"):
+			defender_target = arena.get_alive_defender(global_position) as DefenderPlaceholder
+		elif arena.has_node("DefenderPlaceholder"):
 			defender_target = arena.get_node("DefenderPlaceholder") as DefenderPlaceholder
 
 func _update_popups(delta: float) -> void:

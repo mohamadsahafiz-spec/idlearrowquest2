@@ -148,23 +148,32 @@ func reset_progression() -> void:
 func apply_to_defender(defender: DefenderPlaceholder, equipment_system: EquipmentSystem = null, is_overdrive_active: bool = false) -> void:
 	if defender == null or defender.stats == null:
 		return
-	capture_base_stats(defender)
+
+	var m_id: String = defender.maid_id
+	var eq_atk: float = equipment_system.get_maid_attack_bonus(m_id) if equipment_system != null else 0.0
+	var eq_spd: float = equipment_system.get_maid_speed_bonus(m_id) if equipment_system != null else 0.0
+	var eq_crit: float = equipment_system.get_maid_crit_bonus(m_id) if equipment_system != null else 0.0
+	var eq_hp: float = equipment_system.get_maid_hp_bonus(m_id) if equipment_system != null else 0.0
+
 	var old_max_hp: float = defender.max_hp
 
-	var eq_atk: float = equipment_system.get_total_attack_bonus() if equipment_system != null else 0.0
-	var eq_spd: float = equipment_system.get_total_speed_bonus() if equipment_system != null else 0.0
-	var eq_crit: float = equipment_system.get_total_crit_bonus() if equipment_system != null else 0.0
-	var eq_hp: float = equipment_system.get_total_hp_bonus() if equipment_system != null else 0.0
-
-	defender.stats.attack = get_attack_value() + eq_atk
-
-	var total_speed: float = get_speed_value() + eq_spd
-	if is_overdrive_active:
-		total_speed *= 2.0
-	defender.stats.attack_speed = total_speed
-
-	defender.stats.critical_chance = get_crit_value() + eq_crit
-	defender.stats.max_hp = get_hp_value() + eq_hp
+	if m_id == "001":
+		capture_base_stats(defender)
+		defender.stats.attack = get_attack_value() + eq_atk
+		var total_speed: float = get_speed_value() + eq_spd
+		if is_overdrive_active:
+			total_speed *= 2.0
+		defender.stats.attack_speed = total_speed
+		defender.stats.critical_chance = get_crit_value() + eq_crit
+		defender.stats.max_hp = get_hp_value() + eq_hp
+	else:
+		defender.stats.attack = defender.base_attack + eq_atk
+		var total_speed: float = defender.base_attack_speed + eq_spd
+		if is_overdrive_active:
+			total_speed *= 2.0
+		defender.stats.attack_speed = total_speed
+		defender.stats.critical_chance = defender.base_critical_chance + eq_crit
+		defender.stats.max_hp = defender.base_max_hp + eq_hp
 
 	var new_max_hp: float = defender.stats.max_hp
 	defender.max_hp = new_max_hp

@@ -9,6 +9,7 @@ extends Node2D
 
 var target: EnemyPlaceholder = null
 var lifetime: float = 0.0
+var source_maid: DefenderPlaceholder = null
 
 func _ready() -> void:
 	pass
@@ -42,8 +43,15 @@ func _process(delta: float) -> void:
 
 func _on_hit_target() -> void:
 	if target != null and is_instance_valid(target):
-		if target.has_method("take_damage"):
+		if target.has_method("take_damage_from_maid"):
+			target.take_damage_from_maid(damage, is_critical, source_maid)
+		elif target.has_method("take_damage"):
+			if is_instance_valid(source_maid):
+				source_maid.record_damage(damage, is_critical)
+			var target_was_alive: bool = not target.is_dead
 			target.take_damage(damage, is_critical)
+			if target_was_alive and target.is_dead and is_instance_valid(source_maid):
+				source_maid.record_kill()
 
 func _draw() -> void:
 	# Projectile visual: glowing energetic sphere with shadow, trail and core

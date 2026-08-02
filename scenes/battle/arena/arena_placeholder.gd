@@ -134,6 +134,7 @@ func rebuild_party_combat_nodes() -> void:
 		else:
 			maid_node = DEFENDER_SCENE.instantiate() as DefenderPlaceholder
 			maid_node.position = target_pos
+			maid_node.stats = DefenderStats.new()
 			maid_node.enemies_container = enemies_container
 			maid_node.projectiles_container = projectiles_container
 			add_child(maid_node)
@@ -150,7 +151,7 @@ func get_alive_defender(from_pos: Vector2 = Vector2.ZERO) -> DefenderPlaceholder
 	var closest: DefenderPlaceholder = null
 	var min_dist: float = 999999.0
 	for m: DefenderPlaceholder in active_maids:
-		if is_instance_valid(m) and m.current_hp > 0.0:
+		if is_instance_valid(m) and m.current_hp > 0.0 and not m.is_defeated:
 			var d: float = from_pos.distance_to(m.global_position)
 			if d < min_dist:
 				min_dist = d
@@ -161,7 +162,7 @@ func is_party_defeated() -> bool:
 	if active_maids.is_empty():
 		return true
 	for m: DefenderPlaceholder in active_maids:
-		if is_instance_valid(m) and m.current_hp > 0.0:
+		if is_instance_valid(m) and m.current_hp > 0.0 and not m.is_defeated:
 			return false
 	return true
 

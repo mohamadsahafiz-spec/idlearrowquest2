@@ -4,6 +4,8 @@ extends Node2D
 signal hp_changed(current_hp: float, max_hp: float)
 signal defender_died()
 
+enum CombatRole { RANGED, MELEE, MAGIC, SUPPORT }
+
 @export var maid_id: String = "001"
 @export var maid_name: String = "Liria"
 @export var maid_slot: int = 0
@@ -21,14 +23,22 @@ var fire_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
 var hit_flash_timer: float = 0.0
 var is_overdrive_active: bool = false
+var is_defeated: bool = false
+var role_type: CombatRole = CombatRole.RANGED
+
+# Combat Contribution Tracking
+var damage_dealt: float = 0.0
+var kills: int = 0
+var critical_hits: int = 0
+var deaths: int = 0
 
 var max_hp: float:
 	get:
-		return stats.get_max_hp() if stats != null else 100.0
+		return stats.get_max_hp() if (stats != null and maid_id == "001") else base_max_hp
 
 var attack_range: float:
 	get:
-		return stats.get_attack_range() if stats != null else 240.0
+		return stats.get_attack_range() if (stats != null and maid_id == "001") else 240.0
 
 var detection_range: float:
 	get:
@@ -36,11 +46,11 @@ var detection_range: float:
 
 var fire_cooldown: float:
 	get:
-		return stats.get_fire_cooldown() if stats != null else 0.8
+		return stats.get_fire_cooldown() if (stats != null and maid_id == "001") else (1.0 / maxf(0.1, base_attack_speed))
 
 var damage: float:
 	get:
-		return stats.get_attack_damage() if stats != null else 15.0
+		return stats.get_attack_damage() if (stats != null and maid_id == "001") else base_attack
 
 var base_max_hp: float = 100.0
 var base_attack: float = 15.0
@@ -48,6 +58,51 @@ var base_attack_speed: float = 1.25
 var base_critical_chance: float = 0.05
 
 var liria_visual: LiriaVisual = null
+
+func get_role_definition() -> Dictionary:
+	var role_name: String = "RANGED"
+	match role_type:
+		CombatRole.MELEE: role_name = "MELEE"
+		CombatRole.MAGIC: role_name = "MAGIC"
+		CombatRole.SUPPORT: role_name = "SUPPORT"
+		_: role_name = "RANGED"
+
+	return {
+		"role_type": role_type,
+		"role_name": role_name,
+		"attack_behavior": "projectile" if (role_type == CombatRole.RANGED or role_type == CombatRole.MAGIC) else ("heal" if role_type == CombatRole.SUPPORT else "direct"),
+		"targeting_preference": "lowest_hp" if role_type == CombatRole.SUPPORT else "closest",
+		"range_multiplier": 1.2 if role_type == CombatRole.RANGED else (0.8 if role_type == CombatRole.MELEE else 1.0),
+		"position_preference": maid_slot,
+		"skill_hooks": []
+	}
+
+func record_damage(amt: float, is_crit: bool = false) -> void:
+	damage_dealt += amt
+	if is_crit:
+		critical_hits += 1
+
+func record_kill() -> void:
+	kills += 1
+
+func record_death() -> void:
+	deaths += 1
+
+func get_contribution_data() -> Dictionary:
+	return {
+		"maid_id": maid_id,
+		"maid_name": maid_name,
+		"damage_dealt": damage_dealt,
+		"kills": kills,
+		"critical_hits": critical_hits,
+		"deaths": deaths
+	}
+
+func reset_contribution_data() -> void:
+	damage_dealt = 0.0
+	kills = 0
+	critical_hits = 0
+	deaths = 0
 
 func _ready() -> void:
 	if stats == null:
@@ -63,8 +118,19 @@ func _ready() -> void:
 
 func setup_maid(m_id: String) -> void:
 	maid_id = m_id
+	is_defeated = false
 	var info: Dictionary = MaidRegistry.get_maid_info(maid_id)
 	maid_name = str(info.get("name", "Maid"))
+
+	var class_type: String = str(info.get("class_type", "Archer")).to_upper()
+	if "MAGE" in class_type or "MAGIC" in class_type:
+		role_type = CombatRole.MAGIC
+	elif "SUPPORT" in class_type or "HEAL" in class_type:
+		role_type = CombatRole.SUPPORT
+	elif "MELEE" in class_type or "ASSASSIN" in class_type or "BERSERKER" in class_type or "PALADIN" in class_type:
+		role_type = CombatRole.MELEE
+	else:
+		role_type = CombatRole.RANGED
 
 	if maid_id == "001":
 		if custom_visual_node == null:
@@ -88,7 +154,10 @@ func setup_maid(m_id: String) -> void:
 		base_attack_speed = float(base_prof.get("attack_speed", 1.25))
 		base_critical_chance = float(base_prof.get("critical_chance", 0.05))
 
-	current_hp = stats.get_max_hp()
+	if maid_id == "001":
+		current_hp = stats.get_max_hp()
+	else:
+		current_hp = base_max_hp
 	hp_changed.emit(current_hp, max_hp)
 	queue_redraw()
 
@@ -103,31 +172,35 @@ func get_maid_color() -> Color:
 	return Color(0.3, 0.85, 0.45)
 
 func restore_base_stats() -> void:
-	if stats != null:
+	is_defeated = false
+	if stats != null and maid_id == "001":
 		stats.max_hp = base_max_hp
 		stats.attack = base_attack
 		stats.attack_speed = base_attack_speed
 		stats.critical_chance = base_critical_chance
-	current_hp = base_max_hp
+	current_hp = max_hp
 	if liria_visual != null:
 		liria_visual.is_defeated = false
-	hp_changed.emit(current_hp, base_max_hp)
+	hp_changed.emit(current_hp, max_hp)
 	queue_redraw()
 
 func take_damage(amount: float) -> void:
-	if current_hp <= 0.0:
+	if is_defeated or current_hp <= 0.0:
 		return
 	current_hp = maxf(0.0, current_hp - amount)
 	hp_changed.emit(current_hp, max_hp)
 	hit_flash_timer = 0.15
 	if liria_visual != null:
 		liria_visual.trigger_hit()
-		if current_hp <= 0.0:
-			liria_visual.is_defeated = true
 	_add_damage_popup(amount)
-	queue_redraw()
 	if current_hp <= 0.0:
+		is_defeated = true
+		record_death()
+		current_target = null
+		if liria_visual != null:
+			liria_visual.is_defeated = true
 		defender_died.emit()
+	queue_redraw()
 
 func _add_damage_popup(amount: float) -> void:
 	var popup_count: int = damage_popups.size()
@@ -147,6 +220,9 @@ func _process(delta: float) -> void:
 	if hit_flash_timer > 0.0:
 		hit_flash_timer = maxf(0.0, hit_flash_timer - delta)
 	_update_popups(delta)
+	if is_defeated or current_hp <= 0.0:
+		queue_redraw()
+		return
 	_update_target()
 	_update_firing(delta)
 	queue_redraw()
@@ -164,6 +240,8 @@ func _update_popups(delta: float) -> void:
 		i -= 1
 
 func _update_firing(delta: float) -> void:
+	if is_defeated or current_hp <= 0.0:
+		return
 	if current_target != null and is_instance_valid(current_target) and _is_enemy_in_range(current_target):
 		var cd: float = fire_cooldown
 		fire_timer -= delta
@@ -176,6 +254,8 @@ func _update_firing(delta: float) -> void:
 		fire_timer = 0.0
 
 func _fire_projectile() -> void:
+	if is_defeated or current_hp <= 0.0:
+		return
 	if current_target == null or not is_instance_valid(current_target) or not _is_enemy_in_range(current_target):
 		return
 
@@ -184,10 +264,11 @@ func _fire_projectile() -> void:
 
 	var proj: ProjectilePlaceholder = PROJECTILE_SCENE.instantiate() as ProjectilePlaceholder
 	if proj != null:
+		proj.source_maid = self
 		var spawn_pos: Vector2 = liria_visual.get_bow_launch_position() if liria_visual != null else global_position + Vector2(0, -13)
 		proj.global_position = spawn_pos
 		proj.setup(current_target)
-		var hit_info: Dictionary = stats.calculate_hit_damage() if stats != null else {"damage": damage, "is_critical": false}
+		var hit_info: Dictionary = stats.calculate_hit_damage() if (stats != null and maid_id == "001") else {"damage": damage, "is_critical": (randf() <= base_critical_chance)}
 		proj.damage = float(hit_info["damage"])
 		proj.is_critical = bool(hit_info["is_critical"])
 		if projectiles_container != null:

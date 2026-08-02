@@ -13,6 +13,87 @@ var equipped: Dictionary = {
 	EquipmentItem.Slot.BOOTS: null
 }
 
+# Per-maid equipped dictionary: maid_id (String) -> Dictionary of Slot (int) -> EquipmentItem
+var maid_equipped: Dictionary = {}
+
+func get_maid_equipped_dict(m_id: String) -> Dictionary:
+	if m_id == "001":
+		return equipped
+	if not maid_equipped.has(m_id):
+		maid_equipped[m_id] = {
+			EquipmentItem.Slot.WEAPON: null,
+			EquipmentItem.Slot.ARMOR: null,
+			EquipmentItem.Slot.RING: null,
+			EquipmentItem.Slot.BOOTS: null
+		}
+	return maid_equipped[m_id] as Dictionary
+
+func equip_item_to_maid(m_id: String, item: EquipmentItem) -> bool:
+	if item == null or not inventory.has(item):
+		return false
+	var slot: int = item.slot
+	var eq_dict: Dictionary = get_maid_equipped_dict(m_id)
+	var current_item: EquipmentItem = eq_dict.get(slot) as EquipmentItem
+
+	inventory.erase(item)
+	if current_item != null:
+		inventory.append(current_item)
+
+	eq_dict[slot] = item
+	if m_id == "001":
+		equipped[slot] = item
+	item_equipped.emit(item)
+	inventory_changed.emit()
+	return true
+
+func unequip_slot_from_maid(m_id: String, slot: EquipmentItem.Slot) -> bool:
+	var eq_dict: Dictionary = get_maid_equipped_dict(m_id)
+	var item: EquipmentItem = eq_dict.get(slot) as EquipmentItem
+	if item != null:
+		eq_dict[slot] = null
+		if m_id == "001":
+			equipped[slot] = null
+		inventory.append(item)
+		inventory_changed.emit()
+		return true
+	return false
+
+func get_maid_attack_bonus(m_id: String) -> float:
+	var total: float = 0.0
+	var eq: Dictionary = get_maid_equipped_dict(m_id)
+	for slot: int in eq:
+		var item: EquipmentItem = eq[slot] as EquipmentItem
+		if item != null:
+			total += item.attack_bonus
+	return total
+
+func get_maid_speed_bonus(m_id: String) -> float:
+	var total: float = 0.0
+	var eq: Dictionary = get_maid_equipped_dict(m_id)
+	for slot: int in eq:
+		var item: EquipmentItem = eq[slot] as EquipmentItem
+		if item != null:
+			total += item.speed_bonus
+	return total
+
+func get_maid_crit_bonus(m_id: String) -> float:
+	var total: float = 0.0
+	var eq: Dictionary = get_maid_equipped_dict(m_id)
+	for slot: int in eq:
+		var item: EquipmentItem = eq[slot] as EquipmentItem
+		if item != null:
+			total += item.crit_bonus
+	return total
+
+func get_maid_hp_bonus(m_id: String) -> float:
+	var total: float = 0.0
+	var eq: Dictionary = get_maid_equipped_dict(m_id)
+	for slot: int in eq:
+		var item: EquipmentItem = eq[slot] as EquipmentItem
+		if item != null:
+			total += item.hp_bonus
+	return total
+
 # Inventory list
 var inventory: Array[EquipmentItem] = []
 
