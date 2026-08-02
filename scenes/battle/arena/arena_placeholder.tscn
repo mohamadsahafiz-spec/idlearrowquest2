@@ -1,0 +1,22 @@
+[gd_scene load_steps=6 format=3 uid="uid://c8x1y2z3a4b5"]
+
+[ext_resource type="Script" path="res://scenes/battle/arena/arena_placeholder.gd" id="1_arena"]
+[ext_resource type="Script" path="res://scenes/battle/arena/arena_background.gd" id="2_bg"]
+[ext_resource type="Script" path="res://scenes/battle/arena/arena_rings.gd" id="3_rings"]
+[ext_resource type="Script" path="res://scenes/battle/arena/central_platform.gd" id="4_platform"]
+[ext_resource type="Script" path="res://scenes/battle/arena/arena_framing.gd" id="5_framing"]
+
+[node name="ArenaPlaceholder" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="Background" type="Node2D" parent="."]
+script = ExtResource("2_bg")
+
+[node name="Rings" type="Node2D" parent="."]
+script = ExtResource("3_rings")
+
+[node name="CentralPlatform" type="Node2D" parent="."]
+script = ExtResource("4_platform")
+
+[node name="Framing" type="Node2D" parent="."]
+script = ExtResource("5_framing")
