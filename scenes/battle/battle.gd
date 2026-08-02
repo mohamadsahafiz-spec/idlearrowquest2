@@ -51,6 +51,7 @@ func _ready() -> void:
 		arena_placeholder.stage_system = stage_system
 		arena_placeholder.equipment_system = equipment_system
 		arena_placeholder.skill_system = skill_system
+		arena_placeholder.maid_system = maid_system
 		if arena_placeholder.defender != null:
 			skill_system.defender = arena_placeholder.defender
 		if arena_placeholder.enemies_container != null:
@@ -162,9 +163,21 @@ func _on_skill_state_changed() -> void:
 	if hud_placeholder != null:
 		hud_placeholder.queue_redraw()
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		var k_event: InputEventKey = event as InputEventKey
+		if k_event.shift_pressed:
+			match k_event.keycode:
+				KEY_1: if maid_system != null: maid_system.debug_set_party_count(1)
+				KEY_2: if maid_system != null: maid_system.debug_set_party_count(2)
+				KEY_3: if maid_system != null: maid_system.debug_set_party_count(3)
+				KEY_4: if maid_system != null: maid_system.debug_set_party_count(4)
+				KEY_5: if maid_system != null: maid_system.debug_set_party_count(5)
+				KEY_6: if maid_system != null: maid_system.debug_set_party_count(6)
+
 func _on_equipment_changed() -> void:
-	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
-		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
+	if progression_system != null and arena_placeholder != null:
+		arena_placeholder.apply_progression_to_maids(progression_system, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
 	_update_hud_progression()
 
 func _on_upgrade_requested(type: String) -> void:
@@ -181,8 +194,8 @@ func _on_upgrade_requested(type: String) -> void:
 			progression_system.buy_hp()
 
 func _on_upgrade_applied(_type: String, _level: int) -> void:
-	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
-		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
+	if progression_system != null and arena_placeholder != null:
+		arena_placeholder.apply_progression_to_maids(progression_system, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
 	_update_hud_progression()
 
 func _on_progression_updated(_current_gold: int) -> void:

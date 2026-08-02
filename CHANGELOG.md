@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.5] - Unreleased
+
+### Added
+- **Multi-Maid Combat Spawning**: Dynamic spawning for 1–6 active Maids in combat with backward compatibility for Liria (#001) and safe base combat profiles for #002–#006.
+- **Independent Maid Combat**: Each active Maid independently acquires targets, fires projectiles, deals damage, and participates in boss fights through the combat pipeline.
+- **Party Formation Offsets**: Centralized formation positioning for party sizes 1–6 adapting smoothly without overlapping.
+- **Party Defeat Condition & Debug Controls**: Updated defeat logic requiring all active Maids to fall before triggering defeat, and added shift-key shortcuts (`Shift+1..6`) for dev testing.
+
 ## [0.7.4] - Unreleased
 
 ### Added

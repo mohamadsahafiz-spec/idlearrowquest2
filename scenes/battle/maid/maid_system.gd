@@ -150,3 +150,19 @@ func from_dict(data: Dictionary) -> void:
 		for item in data["party_slots"]:
 			party_slots.append(str(item))
 	validate_party()
+
+func debug_unlock_all() -> void:
+	for m: Dictionary in MaidRegistry.MAIDS:
+		var m_id: String = str(m.get("id", ""))
+		if not is_unlocked(m_id):
+			unlock_maid(m_id)
+
+func debug_set_party_count(count: int) -> void:
+	debug_unlock_all()
+	count = clampi(count, 1, 6)
+	party_slots = ["", "", "", "", "", ""]
+	for i in range(count):
+		var m_id: String = "%03d" % (i + 1)
+		party_slots[i] = m_id
+	validate_party()
+	party_changed.emit(get_party())

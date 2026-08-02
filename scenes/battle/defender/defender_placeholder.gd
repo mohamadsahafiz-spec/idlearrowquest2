@@ -4,6 +4,9 @@ extends Node2D
 signal hp_changed(current_hp: float, max_hp: float)
 signal defender_died()
 
+@export var maid_id: String = "001"
+@export var maid_name: String = "Liria"
+@export var maid_slot: int = 0
 @export var stats: DefenderStats
 @export var current_hp: float = 100.0
 @export var show_debug_visuals: bool = false
@@ -55,13 +58,49 @@ func _ready() -> void:
 	base_critical_chance = stats.critical_chance
 	current_hp = max_hp
 
-	if custom_visual_node == null:
-		liria_visual = LiriaVisual.new()
-		liria_visual.name = "LiriaVisual"
-		add_child(liria_visual)
-		custom_visual_node = liria_visual
-
+	setup_maid(maid_id)
 	hp_changed.emit(current_hp, max_hp)
+
+func setup_maid(m_id: String) -> void:
+	maid_id = m_id
+	var info: Dictionary = MaidRegistry.get_maid_info(maid_id)
+	maid_name = str(info.get("name", "Maid"))
+
+	if maid_id == "001":
+		if custom_visual_node == null:
+			liria_visual = LiriaVisual.new()
+			liria_visual.name = "LiriaVisual"
+			add_child(liria_visual)
+			custom_visual_node = liria_visual
+	else:
+		if liria_visual != null:
+			liria_visual.queue_free()
+			liria_visual = null
+			custom_visual_node = null
+
+	if stats == null:
+		stats = DefenderStats.new()
+
+	var base_prof: Dictionary = info.get("base_combat_profile", {}) as Dictionary
+	if not base_prof.is_empty():
+		base_max_hp = float(base_prof.get("max_hp", 100.0))
+		base_attack = float(base_prof.get("attack", 25.0))
+		base_attack_speed = float(base_prof.get("attack_speed", 1.25))
+		base_critical_chance = float(base_prof.get("critical_chance", 0.05))
+
+	current_hp = stats.get_max_hp()
+	hp_changed.emit(current_hp, max_hp)
+	queue_redraw()
+
+func get_maid_color() -> Color:
+	match maid_id:
+		"001": return Color(0.3, 0.85, 0.45)
+		"002": return Color(0.2, 0.8, 0.5)
+		"003": return Color(0.3, 0.75, 0.95)
+		"004": return Color(0.65, 0.35, 0.85)
+		"005": return Color(0.9, 0.3, 0.2)
+		"006": return Color(0.95, 0.85, 0.25)
+	return Color(0.3, 0.85, 0.45)
 
 func restore_base_stats() -> void:
 	if stats != null:
@@ -187,11 +226,12 @@ func _is_enemy_in_range(enemy: EnemyPlaceholder) -> bool:
 	return global_position.distance_to(enemy.global_position) <= attack_range
 
 func _draw() -> void:
+	var m_color: Color = get_maid_color()
 	# Defender Structure (Godot primitives at local origin)
 	# Platform pedestal top offset shadow
 	_draw_ellipse_filled(Vector2(0, 4), 16.0, 9.0, Color(0.02, 0.04, 0.06, 0.5))
 
-	# Golden Guard Shield / Base
+	# Guard Shield / Base
 	var base_pts: PackedVector2Array = PackedVector2Array([
 		Vector2(0, -18),
 		Vector2(14, -6),
@@ -199,8 +239,8 @@ func _draw() -> void:
 		Vector2(-10, 8),
 		Vector2(-14, -6)
 	])
-	draw_colored_polygon(base_pts, Color(0.85, 0.7, 0.2, 1.0))
-	_draw_polyline_closed(base_pts, Color(1.0, 0.9, 0.5, 0.9), 1.5)
+	draw_colored_polygon(base_pts, m_color.darkened(0.2))
+	_draw_polyline_closed(base_pts, m_color.lightened(0.3), 1.5)
 
 	# Defender Crystal Core
 	var crystal_pts: PackedVector2Array = PackedVector2Array([
@@ -209,9 +249,14 @@ func _draw() -> void:
 		Vector2(0, -4),
 		Vector2(-7, -12)
 	])
-	draw_colored_polygon(crystal_pts, Color(0.2, 0.85, 0.95, 0.95))
-	_draw_polyline_closed(crystal_pts, Color(0.8, 0.95, 1.0, 1.0), 1.5)
+	draw_colored_polygon(crystal_pts, m_color)
+	_draw_polyline_closed(crystal_pts, m_color.lightened(0.5), 1.5)
 	draw_circle(Vector2(0, -13), 3.0, Color(1.0, 1.0, 1.0, 0.95))
+
+	if maid_id != "001":
+		var font: Font = ThemeDB.fallback_font
+		if font != null:
+			draw_string(font, Vector2(0, -26), "#" + maid_id, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color.WHITE)
 
 	# Hit Flash Pulse Ring
 	if hit_flash_timer > 0.0:
