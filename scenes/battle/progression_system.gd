@@ -68,6 +68,19 @@ func get_hp_value(level: int = -1) -> float:
 func is_speed_maxed() -> bool:
 	return false
 
+static func calculate_combat_power(atk: float, spd: float, crit: float, hp: float) -> int:
+	return int(round(atk * spd * (1.0 + crit * 0.5) + hp * 0.2))
+
+func get_combat_power(defender: DefenderPlaceholder) -> int:
+	if defender == null or defender.stats == null:
+		return 0
+	return calculate_combat_power(
+		defender.stats.attack,
+		defender.stats.attack_speed,
+		defender.stats.critical_chance,
+		defender.stats.max_hp
+	)
+
 func is_crit_maxed() -> bool:
 	return false
 

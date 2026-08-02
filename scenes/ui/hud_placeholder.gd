@@ -154,6 +154,14 @@ func _gui_input(event: InputEvent) -> void:
 				queue_redraw()
 				return
 
+			# Equip Best button
+			if Rect2(330, 120, 125, 36).has_point(pos):
+				if equipment_system != null:
+					equipment_system.auto_equip_best()
+				accept_event()
+				queue_redraw()
+				return
+
 			# Equipped slot click -> Unequip
 			if equipment_system != null:
 				if Rect2(25, 185, 230, 45).has_point(pos):
@@ -311,12 +319,13 @@ func _draw_combat_stats_bar() -> void:
 	draw_rect(hp_bar_rect, Color(0.4, 0.55, 0.7, 0.8), false, 1.0)
 
 	if font != null:
+		var pwr_val: int = ProgressionSystem.calculate_combat_power(attack_current, speed_current, crit_current, defender_max_hp)
 		var hp_str: String = "HP: " + str(int(defender_hp)) + " / " + str(int(defender_max_hp))
 		draw_string(font, Vector2(24, 710), hp_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.9, 0.95, 1.0, 0.95))
 
 		# Stats text on right side of panel
-		var stats_str: String = "ATK: " + str(int(attack_current)) + "  SPD: " + ("%.2f" % speed_current) + "/s  CRIT: " + str(int(crit_current * 100.0)) + "%"
-		draw_string(font, Vector2(210, 723), stats_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1.0, 0.9, 0.4, 0.95))
+		var stats_str: String = "PWR: " + str(pwr_val) + "  ATK: " + str(int(attack_current)) + "  SPD: " + ("%.2f" % speed_current) + "/s  CRIT: " + str(int(crit_current * 100.0)) + "%"
+		draw_string(font, Vector2(200, 723), stats_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 0.9, 0.4, 0.95))
 
 func _draw_upgrade_panel() -> void:
 	var font: Font = ThemeDB.fallback_font
@@ -490,7 +499,13 @@ func _draw_inventory_overlay() -> void:
 	_draw_rounded_rect_stroke(panel_rect, 10.0, Color(0.85, 0.7, 0.2, 0.9), 2.0)
 
 	# Panel Title
-	draw_string(font, Vector2(270, 142), "EQUIPMENT & INVENTORY", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(1.0, 0.9, 0.3, 1.0))
+	draw_string(font, Vector2(200, 142), "EQUIPMENT & INVENTORY", HORIZONTAL_ALIGNMENT_CENTER, -1, 15, Color(1.0, 0.9, 0.3, 1.0))
+
+	# Equip Best Button
+	var best_rect: Rect2 = Rect2(330, 120, 125, 36)
+	_draw_rounded_rect_filled(best_rect, 6.0, Color(0.15, 0.55, 0.85, 0.95))
+	_draw_rounded_rect_stroke(best_rect, 6.0, Color(0.4, 0.85, 1.0, 1.0), 1.0)
+	draw_string(font, Vector2(392, 143), "EQUIP BEST", HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color.WHITE)
 
 	# Close Button
 	var close_rect: Rect2 = Rect2(470, 120, 40, 40)
@@ -550,11 +565,14 @@ func _draw_inventory_overlay() -> void:
 			_draw_rounded_rect_filled(row_rect, 6.0, Color(0.09, 0.12, 0.18, 0.92))
 			_draw_rounded_rect_stroke(row_rect, 6.0, r_col, 1.5)
 
-			var title_text: String = "[" + EquipmentItem.get_rarity_name(item.rarity) + "] " + item.name + " (" + EquipmentItem.get_slot_name(item.slot) + ")"
+			var cur_eq: EquipmentItem = equipment_system.equipped[item.slot] as EquipmentItem if equipment_system != null else null
+			var comp_str: String = EquipmentItem.get_comparison_string(item, cur_eq)
+
+			var title_text: String = "[" + EquipmentItem.get_rarity_name(item.rarity) + "] " + item.name + " (" + EquipmentItem.get_slot_name(item.slot) + ") Lv." + str(item.item_level)
 			draw_string(font, Vector2(row_rect.position.x + 12, row_rect.position.y + 20), title_text, HORIZONTAL_ALIGNMENT_LEFT, 360, 12, r_col)
 
-			var stat_str: String = _get_item_stat_string(item)
-			draw_string(font, Vector2(row_rect.position.x + 12, row_rect.position.y + 38), stat_str, HORIZONTAL_ALIGNMENT_LEFT, 360, 11, Color(0.85, 0.92, 1.0, 0.85))
+			var stat_str: String = _get_item_stat_string(item) + " | vs Eq: " + comp_str
+			draw_string(font, Vector2(row_rect.position.x + 12, row_rect.position.y + 38), stat_str, HORIZONTAL_ALIGNMENT_LEFT, 360, 10, Color(0.85, 0.92, 1.0, 0.85))
 
 			# Equip Button Badge
 			var eq_btn_rect: Rect2 = Rect2(row_rect.position.x + 390, row_rect.position.y + 8, 88, 32)

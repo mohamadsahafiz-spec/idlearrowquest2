@@ -55,6 +55,34 @@ func unequip_slot(slot: EquipmentItem.Slot) -> bool:
 		return true
 	return false
 
+func auto_equip_best() -> bool:
+	var equipped_any: bool = false
+	var slot_types: Array[int] = [
+		EquipmentItem.Slot.WEAPON,
+		EquipmentItem.Slot.ARMOR,
+		EquipmentItem.Slot.RING,
+		EquipmentItem.Slot.BOOTS
+	]
+
+	for s: int in slot_types:
+		var slot: EquipmentItem.Slot = s as EquipmentItem.Slot
+		var current: EquipmentItem = equipped.get(slot) as EquipmentItem
+		var best_power: int = current.get_power() if current != null else -1
+		var best_candidate: EquipmentItem = null
+
+		for item: EquipmentItem in inventory:
+			if item.slot == slot:
+				var pwr: int = item.get_power()
+				if pwr > best_power:
+					best_power = pwr
+					best_candidate = item
+
+		if best_candidate != null:
+			if equip_item(best_candidate):
+				equipped_any = true
+
+	return equipped_any
+
 func get_total_attack_bonus() -> float:
 	var total: float = 0.0
 	for slot: int in equipped:
@@ -93,7 +121,7 @@ func roll_loot_drop(tier: EnemyStats.Tier, stage_num: int) -> EquipmentItem:
 		add_to_inventory(forced_item)
 		return forced_item
 
-	var drop_chance: float = 0.05 # Normal
+	var drop_chance: float = 0.05
 	var min_rarity: EquipmentItem.Rarity = EquipmentItem.Rarity.COMMON
 
 	match tier:

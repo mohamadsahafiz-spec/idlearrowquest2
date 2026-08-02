@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.1] - Unreleased
+
+### Added
+- **Item Power & Stage Scaling**: Equipment items roll item level based on dropped stage with centralized scaling formulas.
+- **Smart Stat Rolls**: Tailored stat biases per slot (Weapon: ATK/CRIT, Armor: HP/ATK, Ring: ATK/CRIT, Boots: SPD/HP).
+- **Stat Comparison**: Added simple `+` / `-` delta comparison when viewing inventory items vs currently equipped gear.
+- **Auto-Equip ("Equip Best")**: Added button in inventory overlay to evaluate and equip optimal gear combination.
+- **Combat Power (PWR)**: Added centralized combat power calculation displayed dynamically in HUD stats panel.
+- **Loot Scaling**: Enemy tiers (Strong/Elite/Boss) and stages scale drop rarity odds and item power while preserving infinite progression.
+
 ## [0.4.0] - Unreleased
 
 ### Fixed
