@@ -47,6 +47,15 @@ func _process(delta: float) -> void:
 			pending_respawn = false
 			spawn_enemy()
 
+func get_random_enemy_tier() -> EnemyStats.Tier:
+	var roll: float = randf_range(0.0, 100.0)
+	if roll < 70.0:
+		return EnemyStats.Tier.NORMAL
+	elif roll < 95.0:
+		return EnemyStats.Tier.STRONG
+	else:
+		return EnemyStats.Tier.ELITE
+
 func spawn_enemy() -> void:
 	if enemy_path == null or enemies_container == null:
 		return
@@ -56,6 +65,9 @@ func spawn_enemy() -> void:
 
 	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
 	if enemy_instance != null:
+		var tier: EnemyStats.Tier = get_random_enemy_tier()
+		enemy_instance.stats = EnemyStats.create_for_tier(tier)
+		enemy_instance.apply_stats()
 		enemy_instance.defender_target = defender
 		enemies_container.add_child(enemy_instance)
 		current_enemy = enemy_instance

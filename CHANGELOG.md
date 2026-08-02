@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.6] - Unreleased
+
+### Added
+- Implemented modular enemy tier system (Normal, Strong, Elite) powered by `EnemyStats`:
+  - Defined `Tier` enum (`NORMAL`, `STRONG`, `ELITE`) and modular `EnemyStats.create_for_tier()` factory method.
+  - Configured baseline stats for Normal tier (`max_hp = 100.0`, `attack = 10.0`, `reward = 10`).
+  - Configured scaled stats for Strong tier (`max_hp = 220.0`, `attack = 18.0`, `reward = 25`).
+  - Configured scaled stats for Elite tier (`max_hp = 500.0`, `attack = 35.0`, `reward = 60`).
+  - Implemented configurable weighted spawning in `ArenaPlaceholder` (`70% Normal`, `25% Strong`, `5% Elite`).
+  - Added Godot-native visual distinctions for each tier (custom color schemes, radius scale multipliers, aura rings, and tier text labels).
+  - Preserved movement, targeting, projectiles, critical hits, defender HP/damage, rewards, respawns, and kill tracking with zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.5] - Unreleased
 
 ### Added

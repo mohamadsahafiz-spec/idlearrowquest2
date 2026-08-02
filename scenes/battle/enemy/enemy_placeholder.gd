@@ -46,10 +46,16 @@ var death_timer: float = 0.0
 var damage_popups: Array[Dictionary] = []
 var reward_popups: Array[Dictionary] = []
 
-func _ready() -> void:
+func apply_stats() -> void:
 	if stats == null:
 		stats = EnemyStats.new()
 	current_hp = max_hp
+	enemy_color = stats.get_tier_color()
+	outline_color = stats.get_tier_outline_color()
+	radius = 10.0 * stats.get_tier_radius_multiplier()
+
+func _ready() -> void:
+	apply_stats()
 
 func take_damage(amount: float, is_critical: bool = false) -> void:
 	if is_dead:
@@ -192,6 +198,12 @@ func _draw() -> void:
 	var shadow_pos: Vector2 = Vector2(0, 8)
 	_draw_ellipse_filled(shadow_pos, radius * 1.2, radius * 0.6, Color(0.02, 0.04, 0.06, 0.5))
 
+	# Tier Aura Rings
+	if stats != null and stats.tier == EnemyStats.Tier.ELITE:
+		draw_arc(Vector2.ZERO, radius * 1.45, 0, TAU, 24, Color(0.8, 0.4, 1.0, 0.6), 1.5, true)
+	elif stats != null and stats.tier == EnemyStats.Tier.STRONG:
+		draw_arc(Vector2.ZERO, radius * 1.3, 0, TAU, 20, Color(1.0, 0.6, 0.2, 0.5), 1.0, true)
+
 	# Enemy Body (Stylized primitive diamond/orb)
 	var pts: PackedVector2Array = PackedVector2Array([
 		Vector2(0, -radius * 1.3),
@@ -203,7 +215,12 @@ func _draw() -> void:
 	_draw_polyline_closed(pts, outline_color, 2.0)
 
 	# Core Glow Center
-	draw_circle(Vector2(0, -radius * 0.2), radius * 0.4, Color(1.0, 0.9, 0.4, 0.95))
+	var core_color: Color = Color(1.0, 0.9, 0.4, 0.95)
+	if stats != null and stats.tier == EnemyStats.Tier.ELITE:
+		core_color = Color(0.4, 0.95, 1.0, 0.95)
+	elif stats != null and stats.tier == EnemyStats.Tier.STRONG:
+		core_color = Color(1.0, 0.95, 0.5, 0.95)
+	draw_circle(Vector2(0, -radius * 0.2), radius * 0.4, core_color)
 
 	# Enemy HP Bar
 	_draw_hp_bar()
@@ -242,9 +259,18 @@ func _draw_death_visual() -> void:
 	draw_line(Vector2(0, -radius * 0.2), left_pt, Color(0.95, 0.35, 0.25, fade_alpha * 0.7), 2.0)
 
 func _draw_hp_bar() -> void:
-	var bar_width: float = 32.0
+	var bar_width: float = 32.0 * (stats.get_tier_radius_multiplier() if stats != null else 1.0)
 	var bar_height: float = 4.0
 	var bar_pos: Vector2 = Vector2(-bar_width * 0.5, -radius * 1.3 - 12.0)
+
+	# Optional Tier Label above HP bar
+	if stats != null and stats.tier != EnemyStats.Tier.NORMAL:
+		var font: Font = ThemeDB.fallback_font
+		if font != null:
+			var tier_label: String = stats.get_tier_name().to_upper()
+			var label_pos: Vector2 = bar_pos + Vector2(bar_width * 0.5, -3.0)
+			draw_string(font, label_pos + Vector2(1, 1), tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.0, 0.0, 0.0, 0.8))
+			draw_string(font, label_pos, tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, enemy_color)
 
 	# Background rect
 	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.08, 0.1, 0.14, 0.85))
