@@ -1,5 +1,93 @@
 # Changelog
 
+## [0.4.0] - Unreleased
+
+### Added
+- Implemented Equipment + Loot Foundation:
+  - **Infinite Progression**:
+    - Removed upgrade level caps for Attack Speed and Critical Chance.
+    - Attack and Max HP scale indefinitely.
+    - Attack Speed applies diminishing returns formula at higher levels for smooth performance.
+    - Critical Chance supports overflow beyond 100% for multi-crit damage calculation.
+  - **Equipment System & Slots**:
+    - Introduced 4 equipment slots: `WEAPON`, `ARMOR`, `RING`, and `BOOTS`.
+    - Created modular `EquipmentItem` class and `EquipmentSystem` handling stats, inventories, and equipping/unequipping.
+  - **5 Equipment Rarities**:
+    - Defined `COMMON`, `RARE`, `EPIC`, `LEGENDARY`, and `MYTHIC` rarities with unique color styling and stat scaling.
+  - **Loot Drops & Boss Guarantee**:
+    - Enemy kills roll equipment loot drops scaling with tier (`Normal`, `Strong`, `Elite`, `Boss`).
+    - Bosses guarantee at least 1 Epic+ equipment drop.
+    - Rendered animated top toast notification displaying item rarity, slot, and name upon loot drop.
+  - **Inventory & Equip UI**:
+    - Added dedicated Inventory Overlay Panel toggled via top `EQUIP / BAG` HUD badge.
+    - Rendered equipped gear slots with unequip buttons and item stats preview.
+    - Interactive inventory list rows allowing players to equip/replace items with instant stat recalculation stacking with upgrades.
+  - **Loot Testing Controls**:
+    - Added inspector debug controls `debug_force_loot_drop` and `debug_force_rarity` (default OFF).
+
+## [0.3.1] - Unreleased
+
+### Added
+- Implemented Progression Expansion:
+  - **Defender Max HP Upgrade**:
+    - Added Defender Max HP upgrade with cost and stat formulas centralized in `ProgressionSystem`.
+    - Purchasing Max HP upgrade instantly increases both Max HP and current HP by the gained amount.
+  - **Defender HP HUD**:
+    - Rendered dedicated Defender HP bar with live HP / Max HP numbers and color-shifting health fill bar.
+  - **Economy Scaling**:
+    - Scaled enemy Gold rewards modestly by Stage level (`Stage 1 Normal = 10`, `Stage 2 Normal = 15`, `Boss = 200+`).
+  - **Upgrade Balancing & Caps**:
+    - Centralized progression formulas for Attack, Attack Speed, Critical Chance, and Max HP in `ProgressionSystem`.
+    - Applied caps to Attack Speed (4.0/s) and Critical Chance (80%).
+  - **Combat Stats Display**:
+    - Rendered compact real-time combat stats panel displaying `ATK`, `SPD`, `CRIT`, and `HP`.
+  - **Defeat & Restart Flow**:
+    - Added Defender death detection emitting `defender_died` and `hp_changed` signals.
+    - Added `DEFEAT` overlay state with `"Defender Destroyed"` subtitle and interactive `"RESTART RUN"` button.
+    - Restarting run resets Stage, waves, enemy spawns, run Gold, and upgrade levels to Stage 1 base values.
+
+## [0.3.0] - Unreleased
+
+### Added
+- Implemented Core Progression & In-Run Upgrades:
+  - **Persistent Run Gold**:
+    - Earned Gold directly from enemy rewards upon kill (Normal, Strong, Elite, Boss).
+    - Displayed real-time Gold balance badge in top HUD header bar.
+  - **Attack Upgrade System**:
+    - Incremented Defender attack level (starts Lv.1) with +3.0 attack power per level.
+    - Displayed current → next value and escalating Gold cost in upgrade UI.
+  - **Attack Speed Upgrade System**:
+    - Incremented Defender attack speed level with +0.10 attacks/sec per level.
+    - Updated fire cooldown rate dynamically in combat pipeline.
+  - **Critical Chance Upgrade System**:
+    - Incremented Defender critical hit chance with +2% crit chance per level.
+    - Retained existing damage multiplier pipeline for critical hits.
+  - **Upgrade HUD Panel**:
+    - Added bottom upgrade UI panel featuring Attack, Attack Speed, and Critical cards with interactive click/touch upgrade buttons.
+    - Visual affordance state: highlighted active state when affordable, dimmed/locked state when Gold is insufficient.
+  - **Run Progression Persistence**:
+    - Upgrades and Gold persist seamlessly across stage transitions.
+
+## [0.2.1] - Unreleased
+
+### Added
+- Implemented Boss Fight, Victory Transition & Stage Progression:
+  - **Boss Fight Execution**:
+    - Triggered Boss fight transition after completing Wave 3 ("BOSS INCOMING" -> spawn Boss).
+    - Restricted spawning during Boss fight to exactly one Boss enemy (no regular enemies).
+    - Reused existing Boss stats and shared combat pipeline.
+  - **Boss HUD Display**:
+    - Rendered top Boss HUD bar displaying Boss name/tier (`STAGE X BOSS`), current HP, max HP, and progress fill bar when Boss is active.
+    - Automatically hid Boss HUD upon Boss death.
+  - **Stage Completion & Victory Overlay**:
+    - Triggered `STAGE COMPLETE` state upon Boss death, pausing enemy spawning.
+    - Functional victory overlay displaying `VICTORY` heading and `Stage X Complete` subtitle.
+  - **Next Stage Progression**:
+    - Automatically advanced to Stage 2 after victory overlay transition.
+    - Reset wave counters to Stage 2, Wave 1 / 3, Enemies 0 / 5.
+    - Applied modest enemy stat scaling (HP, attack, rewards) for Stage 2 through `StageSystem`.
+    - Maintained continuous kill count, rewards, and combat counters across stage transitions.
+
 ## [0.2.0] - Unreleased
 
 ### Added
@@ -23,7 +111,7 @@
     - Preserved total "Kill Enemies: X" counter.
 
 ### Fixed
-- Fixed GDScript `StageSystem` type resolution in `arena_placeholder.gd` and `battle.gd` using explicit script preloading.
+- Resolved GDScript class resolution conflicts in `arena_placeholder.gd` and `battle.gd` by using direct global `StageSystem` class reference instead of script preloading.
 
 ## [0.1.8] - Unreleased
 

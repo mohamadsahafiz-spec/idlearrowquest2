@@ -15,34 +15,35 @@ enum Tier {
 @export var attack_speed: float = 1.0
 @export var reward: int = 10
 
-static func create_for_tier(target_tier: Tier) -> EnemyStats:
+static func create_for_tier(target_tier: Tier, stage_level: int = 1) -> EnemyStats:
 	var stats: EnemyStats = EnemyStats.new()
 	stats.tier = target_tier
+	var scale_mult: float = 1.0 + maxf(0.0, float(stage_level - 1)) * 0.35
 	match target_tier:
 		Tier.NORMAL:
-			stats.max_hp = 100.0
+			stats.max_hp = 100.0 * scale_mult
 			stats.movement_speed = 85.0
-			stats.attack = 10.0
+			stats.attack = 10.0 * scale_mult
 			stats.attack_speed = 1.0
-			stats.reward = 10
+			stats.reward = int(10.0 * scale_mult)
 		Tier.STRONG:
-			stats.max_hp = 220.0
+			stats.max_hp = 220.0 * scale_mult
 			stats.movement_speed = 85.0
-			stats.attack = 18.0
+			stats.attack = 18.0 * scale_mult
 			stats.attack_speed = 1.0
-			stats.reward = 25
+			stats.reward = int(25.0 * scale_mult)
 		Tier.ELITE:
-			stats.max_hp = 500.0
+			stats.max_hp = 500.0 * scale_mult
 			stats.movement_speed = 85.0
-			stats.attack = 35.0
+			stats.attack = 35.0 * scale_mult
 			stats.attack_speed = 1.0
-			stats.reward = 60
+			stats.reward = int(60.0 * scale_mult)
 		Tier.BOSS:
-			stats.max_hp = 1500.0
+			stats.max_hp = 1500.0 * scale_mult
 			stats.movement_speed = 75.0
-			stats.attack = 75.0
+			stats.attack = 75.0 * scale_mult
 			stats.attack_speed = 0.8
-			stats.reward = 200
+			stats.reward = int(200.0 * scale_mult)
 	return stats
 
 func get_max_hp() -> float:

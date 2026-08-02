@@ -1,271 +1,180 @@
-class_name DefenderPlaceholder
+class_name ArenaPlaceholder
 extends Node2D
 
-@export var stats: DefenderStats
-@export var current_hp: float = 100.0
-@export var show_debug_visuals: bool = false
-@export var enemies_container: Node2D
-@export var projectiles_container: Node2D
+signal enemy_killed(total_kills: int)
+signal gold_earned(coins: int)
 
-const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/projectile_placeholder.tscn")
+@export var respawn_delay: float = 1.0
+@export var test_spawn_boss: bool = false
+@export var debug_force_loot_drop: bool = false:
+	set(val):
+		debug_force_loot_drop = val
+		if equipment_system != null:
+			equipment_system.debug_force_loot_drop = val
+@export var debug_force_rarity: EquipmentItem.Rarity = EquipmentItem.Rarity.COMMON:
+	set(val):
+		debug_force_rarity = val
+		if equipment_system != null:
+			equipment_system.debug_force_rarity = val
+@export var show_debug_visuals: bool = false:
+	set(val):
+		show_debug_visuals = val
+		_apply_debug_settings()
 
-var current_target: EnemyPlaceholder = null
-var fire_timer: float = 0.0
-var damage_popups: Array[Dictionary] = []
-var hit_flash_timer: float = 0.0
+@onready var background: ArenaBackground = $Background
+@onready var rings: ArenaRings = $Rings
+@onready var enemy_path: EnemyPath = $EnemyPath
+@onready var central_platform: CentralPlatform = $CentralPlatform
+@onready var framing: ArenaFraming = $Framing
+@onready var defender: DefenderPlaceholder = $DefenderPlaceholder
+@onready var enemies_container: Node2D = $Enemies
+@onready var projectiles_container: Node2D = $Projectiles
 
-var max_hp: float:
-	get:
-		return stats.get_max_hp() if stats != null else 100.0
+const ENEMY_SCENE: PackedScene = preload("res://scenes/battle/enemy/enemy_placeholder.tscn")
 
-var attack_range: float:
-	get:
-		return stats.get_attack_range() if stats != null else 240.0
-
-var detection_range: float:
-	get:
-		return attack_range
-
-var fire_cooldown: float:
-	get:
-		return stats.get_fire_cooldown() if stats != null else 0.8
-
-var damage: float:
-	get:
-		return stats.get_attack_damage() if stats != null else 15.0
+var kill_count: int = 0
+var equipment_system: EquipmentSystem = null
+var respawn_timer: float = 0.0
+var pending_respawn: bool = false
+var current_enemy: EnemyPlaceholder = null
+var stage_system: StageSystem = null:
+	set(val):
+		stage_system = val
+		if stage_system != null:
+			if not stage_system.spawn_allowed_changed.is_connected(_on_spawn_allowed_changed):
+				stage_system.spawn_allowed_changed.connect(_on_spawn_allowed_changed)
+			if not stage_system.spawn_boss_requested.is_connected(_on_spawn_boss_requested):
+				stage_system.spawn_boss_requested.connect(_on_spawn_boss_requested)
 
 func _ready() -> void:
-	if stats == null:
-		stats = DefenderStats.new()
-	current_hp = max_hp
+	if defender != null:
+		defender.enemies_container = enemies_container
+		defender.projectiles_container = projectiles_container
+		if not defender.defender_died.is_connected(_on_defender_died):
+			defender.defender_died.connect(_on_defender_died)
+	_apply_debug_settings()
+	# Spawning will be triggered after stage_system is assigned or if null
+	call_deferred("_initial_spawn")
 
-func take_damage(amount: float) -> void:
-	if current_hp <= 0.0:
-		return
-	current_hp = maxf(0.0, current_hp - amount)
-	hit_flash_timer = 0.15
-	_add_damage_popup(amount)
-	queue_redraw()
+func _on_defender_died() -> void:
+	pending_respawn = false
+	if stage_system != null:
+		stage_system.trigger_defeat()
 
-func _add_damage_popup(amount: float) -> void:
-	var popup_count: int = damage_popups.size()
-	var x_stagger: float = randf_range(-12.0, 12.0) + (cos(popup_count * 2.1) * 6.0)
-	var y_base: float = -32.0 - (popup_count * 5.0)
-	y_base = clampf(y_base, -60.0, -26.0)
+func reset_arena() -> void:
+	pending_respawn = false
+	respawn_timer = 0.0
+	kill_count = 0
+	current_enemy = null
+	if enemies_container != null:
+		for child: Node in enemies_container.get_children():
+			child.queue_free()
+	if projectiles_container != null:
+		for child: Node in projectiles_container.get_children():
+			child.queue_free()
+	if defender != null:
+		if defender.stats != null:
+			defender.stats.max_hp = 100.0
+		defender.current_hp = defender.max_hp
+		defender.hp_changed.emit(defender.current_hp, defender.max_hp)
+		defender.queue_redraw()
 
-	var popup_info: Dictionary = {
-		"text": "-" + str(int(amount)),
-		"offset": Vector2(x_stagger, y_base),
-		"life": 0.9,
-		"max_life": 0.9
-	}
-	damage_popups.append(popup_info)
+func _initial_spawn() -> void:
+	spawn_enemy()
+
+func _on_spawn_allowed_changed(allowed: bool) -> void:
+	if allowed:
+		if current_enemy == null or not is_instance_valid(current_enemy) or current_enemy.is_dead:
+			spawn_enemy()
+
+func _on_spawn_boss_requested() -> void:
+	spawn_boss()
+
+func _apply_debug_settings() -> void:
+	if enemy_path != null:
+		enemy_path.draw_path_guide = show_debug_visuals
+		enemy_path.queue_redraw()
+	if defender != null:
+		defender.show_debug_visuals = show_debug_visuals
+		defender.queue_redraw()
 
 func _process(delta: float) -> void:
-	if hit_flash_timer > 0.0:
-		hit_flash_timer = maxf(0.0, hit_flash_timer - delta)
-	_update_popups(delta)
-	_update_target()
-	_update_firing(delta)
-	queue_redraw()
+	if pending_respawn:
+		respawn_timer -= delta
+		if respawn_timer <= 0.0:
+			pending_respawn = false
+			spawn_enemy()
 
-func _update_popups(delta: float) -> void:
-	var i: int = damage_popups.size() - 1
-	while i >= 0:
-		var popup: Dictionary = damage_popups[i]
-		var life: float = float(popup["life"]) - delta
-		popup["life"] = life
-		var offset: Vector2 = popup["offset"] as Vector2
-		popup["offset"] = offset + Vector2(0.0, -28.0 * delta)
-		if life <= 0.0:
-			damage_popups.remove_at(i)
-		i -= 1
-
-func _update_firing(delta: float) -> void:
-	if current_target != null and is_instance_valid(current_target) and _is_enemy_in_range(current_target):
-		var cd: float = fire_cooldown
-		fire_timer -= delta
-		if fire_timer > cd:
-			fire_timer = cd
-		if fire_timer <= 0.0:
-			_fire_projectile()
-			fire_timer = cd
+func get_random_enemy_tier() -> EnemyStats.Tier:
+	var roll: float = randf_range(0.0, 100.0)
+	if roll < 70.0:
+		return EnemyStats.Tier.NORMAL
+	elif roll < 95.0:
+		return EnemyStats.Tier.STRONG
 	else:
-		fire_timer = 0.0
+		return EnemyStats.Tier.ELITE
 
-func _fire_projectile() -> void:
-	if current_target == null or not is_instance_valid(current_target) or not _is_enemy_in_range(current_target):
+func spawn_boss() -> void:
+	if enemy_path == null or enemies_container == null:
 		return
 
-	var proj: ProjectilePlaceholder = PROJECTILE_SCENE.instantiate() as ProjectilePlaceholder
-	if proj != null:
-		var spawn_pos: Vector2 = global_position + Vector2(0, -13)
-		proj.global_position = spawn_pos
-		proj.setup(current_target)
-		var hit_info: Dictionary = stats.calculate_hit_damage() if stats != null else {"damage": damage, "is_critical": false}
-		proj.damage = float(hit_info["damage"])
-		proj.is_critical = bool(hit_info["is_critical"])
-		if projectiles_container != null:
-			projectiles_container.add_child(proj)
-		elif get_parent() != null:
-			get_parent().add_child(proj)
+	if current_enemy != null and is_instance_valid(current_enemy) and not current_enemy.is_dead:
+		if current_enemy.stats != null and current_enemy.stats.tier == EnemyStats.Tier.BOSS:
+			return
+		current_enemy.queue_free()
 
-func _update_target() -> void:
-	# Validate current target if exists
-	if current_target != null:
-		if not is_instance_valid(current_target) or not _is_enemy_valid_target(current_target) or not _is_enemy_in_range(current_target):
-			current_target = null
+	_spawn_enemy_with_tier(EnemyStats.Tier.BOSS)
 
-	# Acquire new target if none
-	if current_target == null and enemies_container != null:
-		var closest_enemy: EnemyPlaceholder = null
-		var closest_dist: float = attack_range + 1.0
-
-		for child: Node in enemies_container.get_children():
-			if child is EnemyPlaceholder:
-				var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-				if _is_enemy_valid_target(enemy) and _is_enemy_in_range(enemy):
-					var dist: float = global_position.distance_to(enemy.global_position)
-					if dist < closest_dist:
-						closest_dist = dist
-						closest_enemy = enemy
-
-		current_target = closest_enemy
-
-func _is_enemy_valid_target(enemy: EnemyPlaceholder) -> bool:
-	return enemy != null and is_instance_valid(enemy) and not enemy.is_dead
-
-func _is_enemy_in_range(enemy: EnemyPlaceholder) -> bool:
-	if enemy == null or not is_instance_valid(enemy):
-		return false
-	return global_position.distance_to(enemy.global_position) <= attack_range
-
-func _draw() -> void:
-	# Defender Structure (Godot primitives at local origin)
-	# Platform pedestal top offset shadow
-	_draw_ellipse_filled(Vector2(0, 4), 16.0, 9.0, Color(0.02, 0.04, 0.06, 0.5))
-
-	# Golden Guard Shield / Base
-	var base_pts: PackedVector2Array = PackedVector2Array([
-		Vector2(0, -18),
-		Vector2(14, -6),
-		Vector2(10, 8),
-		Vector2(-10, 8),
-		Vector2(-14, -6)
-	])
-	draw_colored_polygon(base_pts, Color(0.85, 0.7, 0.2, 1.0))
-	_draw_polyline_closed(base_pts, Color(1.0, 0.9, 0.5, 0.9), 1.5)
-
-	# Defender Crystal Core
-	var crystal_pts: PackedVector2Array = PackedVector2Array([
-		Vector2(0, -22),
-		Vector2(7, -12),
-		Vector2(0, -4),
-		Vector2(-7, -12)
-	])
-	draw_colored_polygon(crystal_pts, Color(0.2, 0.85, 0.95, 0.95))
-	_draw_polyline_closed(crystal_pts, Color(0.8, 0.95, 1.0, 1.0), 1.5)
-	draw_circle(Vector2(0, -13), 3.0, Color(1.0, 1.0, 1.0, 0.95))
-
-	# Hit Flash Pulse Ring
-	if hit_flash_timer > 0.0:
-		var flash_alpha: float = clampf(hit_flash_timer / 0.15, 0.0, 1.0)
-		draw_arc(Vector2(0, -6), 22.0, 0, TAU, 24, Color(1.0, 0.25, 0.25, flash_alpha * 0.8), 2.5, true)
-		draw_circle(Vector2(0, -13), 6.0, Color(1.0, 0.4, 0.3, flash_alpha * 0.7))
-
-	# Defender HP Bar
-	_draw_hp_bar()
-
-	# Floating Damage Popups
-	_draw_damage_popups()
-
-	# Debug Visuals (Range Ring + Targeting Beam + Reticle)
-	if show_debug_visuals:
-		# Range Indicator Ring (Subtle guide)
-		_draw_ellipse_stroke(Vector2.ZERO, detection_range, detection_range * 0.58, Color(0.2, 0.6, 0.8, 0.18), 1.0, 36)
-
-		# Target Visual Indicator (Line + Reticle when target acquired)
-		if current_target != null and is_instance_valid(current_target):
-			var target_local_pos: Vector2 = current_target.global_position - global_position
-			
-			# Targeting Beam Line from defender top crystal to enemy center
-			var beam_start: Vector2 = Vector2(0, -13)
-			draw_line(beam_start, target_local_pos, Color(1.0, 0.3, 0.3, 0.85), 2.0, true)
-			draw_line(beam_start, target_local_pos, Color(1.0, 0.8, 0.4, 0.5), 4.0, true)
-
-			# Target Reticle on enemy
-			_draw_reticle(target_local_pos)
-
-func _draw_reticle(local_pos: Vector2) -> void:
-	var reticle_color: Color = Color(1.0, 0.25, 0.25, 0.95)
-	_draw_ellipse_stroke(local_pos, 16.0, 10.0, reticle_color, 1.5, 24)
-	
-	# Crosshair ticks
-	draw_line(local_pos + Vector2(-22, 0), local_pos + Vector2(-12, 0), reticle_color, 1.5)
-	draw_line(local_pos + Vector2(12, 0), local_pos + Vector2(22, 0), reticle_color, 1.5)
-	draw_line(local_pos + Vector2(0, -14), local_pos + Vector2(0, -7), reticle_color, 1.5)
-	draw_line(local_pos + Vector2(0, 7), local_pos + Vector2(0, 14), reticle_color, 1.5)
-
-func _draw_ellipse_filled(pos: Vector2, rx: float, ry: float, color: Color, segments: int = 24) -> void:
-	var pts: PackedVector2Array = PackedVector2Array()
-	for i: int in range(segments):
-		var a: float = float(i) * TAU / float(segments)
-		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
-	draw_colored_polygon(pts, color)
-
-func _draw_ellipse_stroke(pos: Vector2, rx: float, ry: float, color: Color, width: float = 1.0, segments: int = 24) -> void:
-	var pts: PackedVector2Array = PackedVector2Array()
-	for i: int in range(segments + 1):
-		var a: float = float(i) * TAU / float(segments)
-		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
-	draw_polyline(pts, color, width, true)
-
-func _draw_polyline_closed(pts: PackedVector2Array, color: Color, width: float = 1.0) -> void:
-	var closed_pts: PackedVector2Array = pts.duplicate()
-	closed_pts.append(pts[0])
-	draw_polyline(closed_pts, color, width, true)
-
-func _draw_hp_bar() -> void:
-	var bar_width: float = 36.0
-	var bar_height: float = 4.0
-	var bar_pos: Vector2 = Vector2(-bar_width * 0.5, 12.0)
-
-	# Background rect
-	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.08, 0.1, 0.14, 0.85))
-
-	# Fill rect
-	var hp_pct: float = clampf(current_hp / maxf(1.0, max_hp), 0.0, 1.0)
-	if hp_pct > 0.0:
-		var fill_width: float = bar_width * hp_pct
-		var fill_color: Color = Color(0.2, 0.85, 0.4, 0.9)
-		if hp_pct <= 0.25:
-			fill_color = Color(0.95, 0.25, 0.25, 0.9)
-		elif hp_pct <= 0.5:
-			fill_color = Color(0.95, 0.75, 0.2, 0.9)
-		draw_rect(Rect2(bar_pos, Vector2(fill_width, bar_height)), fill_color)
-
-	# Border outline
-	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.4, 0.5, 0.65, 0.8), false, 1.0)
-
-func _draw_damage_popups() -> void:
-	var font: Font = ThemeDB.fallback_font
-	if font == null:
+func spawn_enemy() -> void:
+	if test_spawn_boss:
+		spawn_boss()
 		return
 
-	for popup: Dictionary in damage_popups:
-		var life: float = float(popup["life"])
-		var max_life: float = float(popup["max_life"])
-		var alpha: float = clampf(life / max_life, 0.0, 1.0)
-		var text_pos: Vector2 = popup["offset"] as Vector2
-		var text_str: String = popup["text"] as String
+	if enemy_path == null or enemies_container == null:
+		return
 
-		var progress: float = 1.0 - (life / max_life)
-		var pop_bounce: float = sin(clampf(progress * PI, 0.0, PI)) * 3.0
-		var render_pos: Vector2 = text_pos + Vector2(0.0, -pop_bounce)
+	if current_enemy != null and is_instance_valid(current_enemy) and not current_enemy.is_dead:
+		return
 
-		# Thick dark drop shadow / outline
-		draw_string(font, render_pos + Vector2(1.5, 1.5), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.1, 0.0, 0.0, alpha * 0.95))
-		draw_string(font, render_pos + Vector2(-1.0, -1.0), text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(0.1, 0.0, 0.0, alpha * 0.85))
-		# Main text in distinct vivid crimson-orange
-		draw_string(font, render_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, 13, Color(1.0, 0.32, 0.25, alpha))
+	if stage_system != null:
+		if not stage_system.can_spawn_enemy():
+			return
+		var tier: EnemyStats.Tier = get_random_enemy_tier()
+		_spawn_enemy_with_tier(tier)
+		stage_system.notify_enemy_spawned()
+	else:
+		var tier: EnemyStats.Tier = get_random_enemy_tier()
+		_spawn_enemy_with_tier(tier)
 
+func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
+	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
+	if enemy_instance != null:
+		var stage_num: int = stage_system.current_stage if stage_system != null else 1
+		enemy_instance.stats = EnemyStats.create_for_tier(tier, stage_num)
+		enemy_instance.apply_stats()
+		enemy_instance.defender_target = defender
+		enemies_container.add_child(enemy_instance)
+		current_enemy = enemy_instance
+		enemy_instance.enemy_died.connect(_on_enemy_died.bind(tier))
+		var points: PackedVector2Array = enemy_path.get_points()
+		enemy_instance.start_path(points)
+
+		if tier == EnemyStats.Tier.BOSS and stage_system != null:
+			stage_system.register_boss(enemy_instance)
+
+func _on_enemy_died(_coins: int, _pos: Vector2, tier: EnemyStats.Tier = EnemyStats.Tier.NORMAL) -> void:
+	kill_count += 1
+	enemy_killed.emit(kill_count)
+	gold_earned.emit(_coins)
+	if equipment_system != null:
+		var stage_num: int = stage_system.current_stage if stage_system != null else 1
+		equipment_system.roll_loot_drop(tier, stage_num)
+	if stage_system != null:
+		var is_boss: bool = (tier == EnemyStats.Tier.BOSS)
+		stage_system.notify_enemy_killed(is_boss)
+		if stage_system.can_spawn_enemy():
+			pending_respawn = true
+			respawn_timer = respawn_delay
+	else:
+		pending_respawn = true
+		respawn_timer = respawn_delay

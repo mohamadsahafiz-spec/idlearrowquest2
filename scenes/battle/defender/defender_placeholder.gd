@@ -1,6 +1,9 @@
 class_name DefenderPlaceholder
 extends Node2D
 
+signal hp_changed(current_hp: float, max_hp: float)
+signal defender_died()
+
 @export var stats: DefenderStats
 @export var current_hp: float = 100.0
 @export var show_debug_visuals: bool = false
@@ -38,14 +41,18 @@ func _ready() -> void:
 	if stats == null:
 		stats = DefenderStats.new()
 	current_hp = max_hp
+	hp_changed.emit(current_hp, max_hp)
 
 func take_damage(amount: float) -> void:
 	if current_hp <= 0.0:
 		return
 	current_hp = maxf(0.0, current_hp - amount)
+	hp_changed.emit(current_hp, max_hp)
 	hit_flash_timer = 0.15
 	_add_damage_popup(amount)
 	queue_redraw()
+	if current_hp <= 0.0:
+		defender_died.emit()
 
 func _add_damage_popup(amount: float) -> void:
 	var popup_count: int = damage_popups.size()

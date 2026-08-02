@@ -27,9 +27,18 @@ func get_critical_damage_multiplier() -> float:
 	return critical_damage
 
 func calculate_hit_damage() -> Dictionary:
-	var is_crit: bool = randf() < maxf(0.0, critical_chance)
 	var base_dmg: float = get_attack_damage()
-	var final_dmg: float = base_dmg * (get_critical_damage_multiplier() if is_crit else 1.0)
+	var chance: float = maxf(0.0, critical_chance)
+	var mult: float = 1.0
+	var is_crit: bool = false
+
+	while chance > 0.0:
+		if randf() < minf(1.0, chance):
+			mult += (critical_damage - 1.0)
+			is_crit = true
+		chance -= 1.0
+
+	var final_dmg: float = base_dmg * mult
 	return {
 		"damage": final_dmg,
 		"is_critical": is_crit

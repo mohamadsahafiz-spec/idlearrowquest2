@@ -3,6 +3,7 @@ extends Node2D
 
 signal reached_destination
 signal enemy_died(coins: int, pos: Vector2)
+signal hp_changed(current_hp: float, max_hp: float)
 
 @export var stats: EnemyStats
 @export var current_hp: float = 100.0
@@ -52,6 +53,7 @@ func apply_stats() -> void:
 	if stats == null:
 		stats = EnemyStats.new()
 	current_hp = max_hp
+	hp_changed.emit(current_hp, max_hp)
 	enemy_color = stats.get_tier_color()
 	outline_color = stats.get_tier_outline_color()
 	radius = 10.0 * stats.get_tier_radius_multiplier()
@@ -64,6 +66,7 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 		return
 
 	current_hp = maxf(0.0, current_hp - amount)
+	hp_changed.emit(current_hp, max_hp)
 	hit_flash_timer = 0.14
 	_add_hit_spark(is_critical)
 	_add_damage_popup(amount, is_critical)
