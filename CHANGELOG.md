@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.2] - Unreleased
+
+### Added
+- Implemented range system fully governed by `DefenderStats`:
+  - Added `get_attack_range()` helper method to `DefenderStats`.
+  - Updated `DefenderPlaceholder` targeting and firing logic to strictly validate target proximity against `attack_range`.
+  - Added target distance range checks (`_is_enemy_in_range(enemy)`) in target acquisition, target loss validation, and projectile firing triggers.
+  - Cleared target automatically when an enemy moves out of range and reacquires valid enemies upon entering range.
+  - Preserved existing range balance (`range = 240.0`) and zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.1] - Unreleased
 
 ### Added

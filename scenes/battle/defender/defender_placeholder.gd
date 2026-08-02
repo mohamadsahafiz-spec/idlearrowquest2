@@ -11,9 +11,13 @@ const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/pr
 var current_target: EnemyPlaceholder = null
 var fire_timer: float = 0.0
 
+var attack_range: float:
+	get:
+		return stats.get_attack_range() if stats != null else 240.0
+
 var detection_range: float:
 	get:
-		return stats.range if stats != null else 240.0
+		return attack_range
 
 var fire_cooldown: float:
 	get:
@@ -33,7 +37,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _update_firing(delta: float) -> void:
-	if current_target != null and is_instance_valid(current_target):
+	if current_target != null and is_instance_valid(current_target) and _is_enemy_in_range(current_target):
 		var cd: float = fire_cooldown
 		fire_timer -= delta
 		if fire_timer > cd:
@@ -45,7 +49,7 @@ func _update_firing(delta: float) -> void:
 		fire_timer = 0.0
 
 func _fire_projectile() -> void:
-	if current_target == null or not is_instance_valid(current_target):
+	if current_target == null or not is_instance_valid(current_target) or not _is_enemy_in_range(current_target):
 		return
 
 	var proj: ProjectilePlaceholder = PROJECTILE_SCENE.instantiate() as ProjectilePlaceholder
@@ -62,24 +66,20 @@ func _fire_projectile() -> void:
 func _update_target() -> void:
 	# Validate current target if exists
 	if current_target != null:
-		if not is_instance_valid(current_target) or not _is_enemy_valid_target(current_target):
+		if not is_instance_valid(current_target) or not _is_enemy_valid_target(current_target) or not _is_enemy_in_range(current_target):
 			current_target = null
-		else:
-			var dist: float = global_position.distance_to(current_target.global_position)
-			if dist > detection_range:
-				current_target = null
 
 	# Acquire new target if none
 	if current_target == null and enemies_container != null:
 		var closest_enemy: EnemyPlaceholder = null
-		var closest_dist: float = detection_range + 1.0
+		var closest_dist: float = attack_range + 1.0
 
 		for child: Node in enemies_container.get_children():
 			if child is EnemyPlaceholder:
 				var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-				if _is_enemy_valid_target(enemy):
+				if _is_enemy_valid_target(enemy) and _is_enemy_in_range(enemy):
 					var dist: float = global_position.distance_to(enemy.global_position)
-					if dist <= detection_range and dist < closest_dist:
+					if dist < closest_dist:
 						closest_dist = dist
 						closest_enemy = enemy
 
@@ -87,6 +87,11 @@ func _update_target() -> void:
 
 func _is_enemy_valid_target(enemy: EnemyPlaceholder) -> bool:
 	return enemy != null and is_instance_valid(enemy) and not enemy.is_dead
+
+func _is_enemy_in_range(enemy: EnemyPlaceholder) -> bool:
+	if enemy == null or not is_instance_valid(enemy):
+		return false
+	return global_position.distance_to(enemy.global_position) <= attack_range
 
 func _draw() -> void:
 	# Defender Structure (Godot primitives at local origin)

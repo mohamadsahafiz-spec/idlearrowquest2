@@ -12,3 +12,6 @@ func get_fire_cooldown() -> float:
 
 func get_attack_damage() -> float:
 	return attack
+
+func get_attack_range() -> float:
+	return range
