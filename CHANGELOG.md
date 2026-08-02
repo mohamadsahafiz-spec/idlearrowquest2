@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.0] - Unreleased
+
+### Added
+- Implemented modular combat stats foundation (`DefenderStats`, `EnemyStats`):
+  - Created `DefenderStats` resource with configurable combat fields: `attack` (15.0), `attack_speed` (1.25), `critical_chance` (0.05), `critical_damage` (1.5), and `range` (240.0), with helper method `get_fire_cooldown()`.
+  - Created `EnemyStats` resource with configurable combat fields: `max_hp` (100.0), `movement_speed` (85.0), `attack` (10.0), `attack_speed` (1.0), and `reward` (10).
+  - Integrated `DefenderStats` into `DefenderPlaceholder` via `@export var stats: DefenderStats`, delegating detection range, fire cooldown calculations, and projectile damage.
+  - Integrated `EnemyStats` into `EnemyPlaceholder` via `@export var stats: EnemyStats`, delegating max HP, movement speed, and coin reward amounts.
+  - Preserved existing balance, combat timing, auto-targeting, and respawn gameplay loop behavior.
+
 ## [0.0.9] - Unreleased
 
 ### Added
@@ -68,7 +78,7 @@
 
 ### Added
 - Implemented first enemy movement foundation (`EnemyPlaceholder`):
-  - Created a modular placeholder enemy using Godot primitives (crimson orb/diamond with core glow and ground shadow).
+  - Created a modular placeholder enemy using Godot primitives (crimson orb/diamond with core glow and shadow).
   - Defined modular path routing (`EnemyPath`) from outer framing entry point through isometric ring waypoints down to central platform.
   - Added smooth frame-by-frame movement along path waypoints, stopping automatically at central defender platform destination.
   - Added path guide visualization and waypoint markers for visual testing feedback.

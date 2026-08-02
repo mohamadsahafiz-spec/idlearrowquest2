@@ -1,9 +1,7 @@
 class_name DefenderPlaceholder
 extends Node2D
 
-@export var detection_range: float = 240.0
-@export var fire_cooldown: float = 0.8
-@export var damage: float = 15.0
+@export var stats: DefenderStats
 @export var show_debug_visuals: bool = false
 @export var enemies_container: Node2D
 @export var projectiles_container: Node2D
@@ -13,8 +11,21 @@ const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/pr
 var current_target: EnemyPlaceholder = null
 var fire_timer: float = 0.0
 
+var detection_range: float:
+	get:
+		return stats.range if stats != null else 240.0
+
+var fire_cooldown: float:
+	get:
+		return stats.get_fire_cooldown() if stats != null else 0.8
+
+var damage: float:
+	get:
+		return stats.attack if stats != null else 15.0
+
 func _ready() -> void:
-	pass
+	if stats == null:
+		stats = DefenderStats.new()
 
 func _process(delta: float) -> void:
 	_update_target()

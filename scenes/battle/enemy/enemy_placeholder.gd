@@ -4,14 +4,24 @@ extends Node2D
 signal reached_destination
 signal enemy_died(coins: int, pos: Vector2)
 
-@export var max_hp: float = 100.0
+@export var stats: EnemyStats
 @export var current_hp: float = 100.0
-@export var speed: float = 85.0
-@export var coin_reward: int = 10
 @export var death_duration: float = 0.6
 @export var enemy_color: Color = Color(0.95, 0.25, 0.25, 1.0)
 @export var outline_color: Color = Color(1.0, 0.85, 0.85, 0.9)
 @export var radius: float = 10.0
+
+var max_hp: float:
+	get:
+		return stats.max_hp if stats != null else 100.0
+
+var speed: float:
+	get:
+		return stats.movement_speed if stats != null else 85.0
+
+var coin_reward: int:
+	get:
+		return stats.reward if stats != null else 10
 
 var path_points: PackedVector2Array = PackedVector2Array()
 var current_waypoint_index: int = 0
@@ -22,6 +32,8 @@ var damage_popups: Array[Dictionary] = []
 var reward_popups: Array[Dictionary] = []
 
 func _ready() -> void:
+	if stats == null:
+		stats = EnemyStats.new()
 	current_hp = max_hp
 
 func take_damage(amount: float) -> void:
