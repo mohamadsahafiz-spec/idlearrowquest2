@@ -71,6 +71,34 @@ static func get_comparison_string(new_item: EquipmentItem, equipped_item: Equipm
 		return "(= Stats)"
 	return ", ".join(parts)
 
+func to_dict() -> Dictionary:
+	return {
+		"id": id,
+		"name": name,
+		"slot": slot,
+		"rarity": rarity,
+		"item_level": item_level,
+		"attack_bonus": attack_bonus,
+		"speed_bonus": speed_bonus,
+		"crit_bonus": crit_bonus,
+		"hp_bonus": hp_bonus
+	}
+
+static func from_dict(d: Dictionary) -> EquipmentItem:
+	if d.is_empty():
+		return null
+	var item: EquipmentItem = EquipmentItem.new()
+	item.id = str(d.get("id", ""))
+	item.name = str(d.get("name", ""))
+	item.slot = int(d.get("slot", 0)) as Slot
+	item.rarity = int(d.get("rarity", 0)) as Rarity
+	item.item_level = int(d.get("item_level", 1))
+	item.attack_bonus = float(d.get("attack_bonus", 0.0))
+	item.speed_bonus = float(d.get("speed_bonus", 0.0))
+	item.crit_bonus = float(d.get("crit_bonus", 0.0))
+	item.hp_bonus = float(d.get("hp_bonus", 0.0))
+	return item
+
 static func generate_random(target_slot: Slot = -1 as Slot, min_rarity: Rarity = Rarity.COMMON, stage_num: int = 1) -> EquipmentItem:
 	var item: EquipmentItem = EquipmentItem.new()
 	item.id = str(Time.get_ticks_msec()) + "_" + str(randi() % 10000)

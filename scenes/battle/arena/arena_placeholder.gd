@@ -35,6 +35,7 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/battle/enemy/enemy_placeh
 var kill_count: int = 0
 var equipment_system: EquipmentSystem = null
 var skill_system: SkillSystem = null
+var world_presentation: WorldPresentation = null
 var respawn_timer: float = 0.0
 var pending_respawn: bool = false
 var current_enemy: EnemyPlaceholder = null
@@ -46,8 +47,14 @@ var stage_system: StageSystem = null:
 				stage_system.spawn_allowed_changed.connect(_on_spawn_allowed_changed)
 			if not stage_system.spawn_boss_requested.is_connected(_on_spawn_boss_requested):
 				stage_system.spawn_boss_requested.connect(_on_spawn_boss_requested)
+			if not stage_system.stage_updated.is_connected(_on_stage_updated):
+				stage_system.stage_updated.connect(_on_stage_updated)
 
 func _ready() -> void:
+	world_presentation = WorldPresentation.new()
+	world_presentation.name = "WorldPresentation"
+	add_child(world_presentation)
+
 	if defender != null:
 		defender.enemies_container = enemies_container
 		defender.projectiles_container = projectiles_container
@@ -56,6 +63,10 @@ func _ready() -> void:
 	_apply_debug_settings()
 	# Spawning will be triggered after stage_system is assigned or if null
 	call_deferred("_initial_spawn")
+
+func _on_stage_updated(stage_num: int, _wave: int, _total_w: int, _k: int, _req: int) -> void:
+	if world_presentation != null:
+		world_presentation.update_stage(stage_num)
 
 func _on_defender_died() -> void:
 	pending_respawn = false

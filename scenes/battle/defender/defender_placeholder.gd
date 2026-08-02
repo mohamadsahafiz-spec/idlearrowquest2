@@ -9,6 +9,7 @@ signal defender_died()
 @export var show_debug_visuals: bool = false
 @export var enemies_container: Node2D
 @export var projectiles_container: Node2D
+@export var custom_visual_node: Node2D = null
 
 const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/projectile_placeholder.tscn")
 

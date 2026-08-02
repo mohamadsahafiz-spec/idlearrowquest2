@@ -12,6 +12,15 @@ signal hp_changed(current_hp: float, max_hp: float)
 @export var outline_color: Color = Color(1.0, 0.85, 0.85, 0.9)
 @export var radius: float = 10.0
 @export var defender_target: DefenderPlaceholder = null
+@export var custom_visual_node: Node2D = null
+
+func trigger_boss_entrance() -> void:
+	# Hook for future boss entrance animations
+	pass
+
+func trigger_boss_death_vfx() -> void:
+	# Hook for future boss death VFX
+	pass
 
 var max_hp: float:
 	get:

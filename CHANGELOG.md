@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0] - Unreleased
+
+### Added
+- **WorldPresentation Architecture**: Modular World 1: Royal Kingdom foundation with stage environment variants (Royal Outskirts, Kingdom Road, Damaged Village, Royal Castle Front) and theme accents.
+- **Decoupled Visual Hooks**: Created presentation layer hooks in Defender, Enemy, and Boss components to allow custom visual/VFX replacements without affecting combat calculations or stats.
+
+## [0.6.0] - Unreleased
+
+### Added
+- **SaveSystem & Local Persistence**: Periodically auto-saves game state (Stage, Gold, Upgrades, Inventory, Equipment, AUTO settings) to local JSON and restores on launch.
+- **Offline Rewards & Welcome Back**: Calculates mathematical gold and equipment rewards for offline time (up to 8h max), granted upon CLAIM in Welcome Back modal.
+- **Auto Upgrade & Auto Equip**: Master toggles for automatic gold spending on balanced upgrades and auto-equipping power-improving gear.
+- **Idle Status & Debug Controls**: Compact HUD status showing AUTO SKILLS, AUTO UPGRADE, AUTO EQUIP states with debug buttons for offline simulation testing.
+
 ## [0.5.1] - Unreleased
 
 ### Added

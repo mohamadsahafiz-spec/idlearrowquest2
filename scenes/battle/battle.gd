@@ -7,6 +7,7 @@ var stage_system: StageSystem = null
 var progression_system: ProgressionSystem = null
 var equipment_system: EquipmentSystem = null
 var skill_system: SkillSystem = null
+var save_system: SaveSystem = null
 
 func _ready() -> void:
 	stage_system = StageSystem.new()
@@ -28,6 +29,17 @@ func _ready() -> void:
 		arena_placeholder.add_child(skill_system)
 	else:
 		add_child(skill_system)
+
+	save_system = SaveSystem.new()
+	save_system.name = "SaveSystem"
+	save_system.stage_system = stage_system
+	save_system.progression_system = progression_system
+	save_system.equipment_system = equipment_system
+	save_system.skill_system = skill_system
+	add_child(save_system)
+
+	if equipment_system != null:
+		equipment_system.loot_dropped.connect(save_system.on_loot_dropped)
 
 	if arena_placeholder != null:
 		arena_placeholder.stage_system = stage_system
@@ -53,8 +65,13 @@ func _ready() -> void:
 	if hud_placeholder != null:
 		hud_placeholder.equipment_system = equipment_system
 		hud_placeholder.skill_system = skill_system
+		hud_placeholder.save_system = save_system
 		hud_placeholder.skill_requested.connect(_on_skill_requested)
 		hud_placeholder.skill_auto_toggled.connect(_on_skill_auto_toggled)
+		hud_placeholder.auto_upgrade_toggled.connect(_on_auto_upgrade_toggled)
+		hud_placeholder.auto_equip_toggled.connect(_on_auto_equip_toggled)
+		hud_placeholder.debug_sim_offline.connect(_on_debug_sim_offline)
+		hud_placeholder.claim_offline_requested.connect(_on_claim_offline_requested)
 
 	if equipment_system != null:
 		equipment_system.inventory_changed.connect(_on_equipment_changed)
@@ -83,10 +100,49 @@ func _ready() -> void:
 			stage_system.enemies_required_this_wave
 		)
 
+	# Restore saved progress & check offline rewards
+	var save_data: Dictionary = save_system.load_game()
+	var saved_time: float = save_system.apply_save_data(save_data)
+	if saved_time > 0.0:
+		var offline_rewards: Dictionary = save_system.calculate_offline_rewards(saved_time)
+		if bool(offline_rewards.get("has_rewards", false)) and hud_placeholder != null:
+			hud_placeholder.offline_rewards_data = offline_rewards
+			hud_placeholder.show_welcome_back = true
+
 	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
 		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active())
 
 	_update_hud_progression()
+
+func _on_auto_upgrade_toggled() -> void:
+	if save_system != null:
+		save_system.auto_upgrade_enabled = not save_system.auto_upgrade_enabled
+		if hud_placeholder != null:
+			hud_placeholder.queue_redraw()
+
+func _on_auto_equip_toggled() -> void:
+	if save_system != null:
+		save_system.auto_equip_enabled = not save_system.auto_equip_enabled
+		if save_system.auto_equip_enabled and equipment_system != null:
+			equipment_system.auto_equip_best()
+		if hud_placeholder != null:
+			hud_placeholder.queue_redraw()
+
+func _on_debug_sim_offline(seconds: float) -> void:
+	if save_system == null or hud_placeholder == null:
+		return
+	var sim_time: float = Time.get_unix_time_from_system() - seconds
+	var rewards: Dictionary = save_system.calculate_offline_rewards(sim_time)
+	if bool(rewards.get("has_rewards", false)):
+		hud_placeholder.offline_rewards_data = rewards
+		hud_placeholder.show_welcome_back = true
+		hud_placeholder.queue_redraw()
+
+func _on_claim_offline_requested() -> void:
+	if save_system != null and hud_placeholder != null:
+		save_system.claim_offline_rewards(hud_placeholder.offline_rewards_data)
+		hud_placeholder.offline_rewards_data = {}
+		_update_hud_progression()
 
 func _on_skill_requested(skill_name: String) -> void:
 	if skill_system != null:
