@@ -151,6 +151,13 @@ func from_dict(data: Dictionary) -> void:
 			party_slots.append(str(item))
 	validate_party()
 
+func get_active_party_count() -> int:
+	var count: int = 0
+	for id: String in party_slots:
+		if not id.is_empty() and is_unlocked(id):
+			count += 1
+	return count
+
 func debug_unlock_all() -> void:
 	for m: Dictionary in MaidRegistry.MAIDS:
 		var m_id: String = str(m.get("id", ""))

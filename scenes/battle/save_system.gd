@@ -212,6 +212,10 @@ func apply_save_data(data: Dictionary) -> float:
 
 	return saved_time
 
+func delete_save_file() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+
 func calculate_offline_rewards(saved_time: float) -> Dictionary:
 	if saved_time <= 0.0:
 		return {"has_rewards": false}
