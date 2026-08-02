@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.4] - Unreleased
+
+### Added
+- Connected enemy combat behavior fully to `EnemyStats`:
+  - Added helper accessors `get_max_hp()`, `get_movement_speed()`, `get_reward()`, `get_attack_damage()`, `get_attack_speed()`, and `get_attack_cooldown()` to `EnemyStats`.
+  - Updated `EnemyPlaceholder` computed properties (`max_hp`, `speed`, `coin_reward`, `attack`, `attack_speed`, `attack_cooldown`) to delegate directly to `EnemyStats`.
+  - Prepared `attack` and `attack_speed` stats as modular accessors ready for future enemy attack capabilities without modifying current non-attacking behavior.
+  - Preserved existing balance (`max_hp = 100.0`, `movement_speed = 85.0`, `reward = 10`) and full gameplay loop stability with zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.3] - Unreleased
 
 ### Added

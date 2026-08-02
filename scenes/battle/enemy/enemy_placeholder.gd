@@ -13,15 +13,27 @@ signal enemy_died(coins: int, pos: Vector2)
 
 var max_hp: float:
 	get:
-		return stats.max_hp if stats != null else 100.0
+		return stats.get_max_hp() if stats != null else 100.0
 
 var speed: float:
 	get:
-		return stats.movement_speed if stats != null else 85.0
+		return stats.get_movement_speed() if stats != null else 85.0
 
 var coin_reward: int:
 	get:
-		return stats.reward if stats != null else 10
+		return stats.get_reward() if stats != null else 10
+
+var attack: float:
+	get:
+		return stats.get_attack_damage() if stats != null else 10.0
+
+var attack_speed: float:
+	get:
+		return stats.get_attack_speed() if stats != null else 1.0
+
+var attack_cooldown: float:
+	get:
+		return stats.get_attack_cooldown() if stats != null else 1.0
 
 var path_points: PackedVector2Array = PackedVector2Array()
 var current_waypoint_index: int = 0
