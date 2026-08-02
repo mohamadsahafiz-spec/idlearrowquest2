@@ -21,7 +21,7 @@ var fire_cooldown: float:
 
 var damage: float:
 	get:
-		return stats.attack if stats != null else 15.0
+		return stats.get_attack_damage() if stats != null else 15.0
 
 func _ready() -> void:
 	if stats == null:
@@ -34,10 +34,13 @@ func _process(delta: float) -> void:
 
 func _update_firing(delta: float) -> void:
 	if current_target != null and is_instance_valid(current_target):
+		var cd: float = fire_cooldown
 		fire_timer -= delta
+		if fire_timer > cd:
+			fire_timer = cd
 		if fire_timer <= 0.0:
 			_fire_projectile()
-			fire_timer = fire_cooldown
+			fire_timer = cd
 	else:
 		fire_timer = 0.0
 

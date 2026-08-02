@@ -9,3 +9,6 @@ extends Resource
 
 func get_fire_cooldown() -> float:
 	return 1.0 / maxf(0.01, attack_speed)
+
+func get_attack_damage() -> float:
+	return attack

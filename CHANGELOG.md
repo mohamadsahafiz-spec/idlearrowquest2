@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.1] - Unreleased
+
+### Added
+- Fully connected defender combat behavior to `DefenderStats`:
+  - Centralized attack damage calculation in `DefenderStats.get_attack_damage()`, powering projectile damage.
+  - Derived firing cadence dynamically from `attack_speed` (attacks per second) via `DefenderStats.get_fire_cooldown()`.
+  - Configured `DefenderPlaceholder` to immediately reflect runtime changes in `attack` and `attack_speed`.
+  - Preserved existing balance (`attack = 15.0`, `attack_speed = 1.25` yielding `0.8s` fire cooldown) and gameplay loop stability without introducing GDScript errors/warnings.
+
 ## [0.1.0] - Unreleased
 
 ### Added
