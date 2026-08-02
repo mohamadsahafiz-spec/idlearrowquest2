@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0] - Unreleased
+
+### Added
+- **SkillSystem Foundation**: Centralized active skills engine (`scenes/battle/skill_system.gd`).
+- **Meteor**: Trigger high AoE damage to active enemies (supports crits based on defender stats, 30s cooldown).
+- **Freeze**: Freeze active enemies for 5s, stopping movement and attacks, resuming normally afterward (25s cooldown).
+- **Overdrive**: Boost effective attack speed by +100% for 8s, stacking with progression/equipment and restoring exact speed afterward (30s cooldown).
+- **Skill HUD**: 3 skill cards displaying READY/ACTIVE/cooldown states and countdowns without obstructing upgrade UI.
+- **Auto Skills**: Independent AUTO ON/OFF toggles per skill persisting across stages during run, safe during victory/defeat transitions.
+
 ## [0.4.1] - Unreleased
 
 ### Added

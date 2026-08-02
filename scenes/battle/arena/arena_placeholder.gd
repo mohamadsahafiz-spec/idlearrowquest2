@@ -34,6 +34,7 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/battle/enemy/enemy_placeh
 
 var kill_count: int = 0
 var equipment_system: EquipmentSystem = null
+var skill_system: SkillSystem = null
 var respawn_timer: float = 0.0
 var pending_respawn: bool = false
 var current_enemy: EnemyPlaceholder = null
@@ -154,6 +155,9 @@ func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 		enemy_instance.enemy_died.connect(_on_enemy_died.bind(tier))
 		var points: PackedVector2Array = enemy_path.get_points()
 		enemy_instance.start_path(points)
+
+		if skill_system != null:
+			skill_system.on_enemy_spawned(enemy_instance)
 
 		if tier == EnemyStats.Tier.BOSS and stage_system != null:
 			stage_system.register_boss(enemy_instance)

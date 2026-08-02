@@ -145,7 +145,7 @@ func reset_progression() -> void:
 	gold_changed.emit(gold)
 	upgrade_applied.emit("reset", 1)
 
-func apply_to_defender(defender: DefenderPlaceholder, equipment_system: EquipmentSystem = null) -> void:
+func apply_to_defender(defender: DefenderPlaceholder, equipment_system: EquipmentSystem = null, is_overdrive_active: bool = false) -> void:
 	if defender == null or defender.stats == null:
 		return
 	capture_base_stats(defender)
@@ -157,7 +157,12 @@ func apply_to_defender(defender: DefenderPlaceholder, equipment_system: Equipmen
 	var eq_hp: float = equipment_system.get_total_hp_bonus() if equipment_system != null else 0.0
 
 	defender.stats.attack = get_attack_value() + eq_atk
-	defender.stats.attack_speed = get_speed_value() + eq_spd
+
+	var total_speed: float = get_speed_value() + eq_spd
+	if is_overdrive_active:
+		total_speed *= 2.0
+	defender.stats.attack_speed = total_speed
+
 	defender.stats.critical_chance = get_crit_value() + eq_crit
 	defender.stats.max_hp = get_hp_value() + eq_hp
 

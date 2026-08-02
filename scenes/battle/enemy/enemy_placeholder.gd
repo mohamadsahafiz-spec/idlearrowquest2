@@ -48,6 +48,7 @@ var damage_popups: Array[Dictionary] = []
 var reward_popups: Array[Dictionary] = []
 var hit_sparks: Array[Dictionary] = []
 var hit_flash_timer: float = 0.0
+var is_frozen: bool = false
 
 func apply_stats() -> void:
 	if stats == null:
@@ -139,6 +140,10 @@ func _process(delta: float) -> void:
 		return
 
 	_update_popups(delta)
+
+	if is_frozen:
+		queue_redraw()
+		return
 
 	if is_moving and current_waypoint_index < path_points.size():
 		var target_pos: Vector2 = path_points[current_waypoint_index]
@@ -249,12 +254,17 @@ func _draw() -> void:
 	])
 
 	var body_col: Color = enemy_color
-	if hit_flash_timer > 0.0:
+	if is_frozen:
+		body_col = body_col.lerp(Color(0.2, 0.7, 1.0, 1.0), 0.65)
+	elif hit_flash_timer > 0.0:
 		var flash_ratio: float = hit_flash_timer / 0.14
 		body_col = enemy_color.lerp(Color(1.0, 1.0, 1.0, 1.0), flash_ratio * 0.7)
 
 	draw_colored_polygon(pts, body_col)
-	_draw_polyline_closed(pts, outline_color, 2.0)
+	_draw_polyline_closed(pts, Color(0.6, 0.9, 1.0, 1.0) if is_frozen else outline_color, 2.0)
+
+	if is_frozen:
+		draw_arc(Vector2.ZERO, radius * 1.5, 0, TAU, 24, Color(0.4, 0.85, 1.0, 0.85), 2.0, true)
 
 	# Hit Flash Overlay Ring
 	if hit_flash_timer > 0.0:

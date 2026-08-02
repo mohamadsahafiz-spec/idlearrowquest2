@@ -6,6 +6,7 @@ extends Control
 var stage_system: StageSystem = null
 var progression_system: ProgressionSystem = null
 var equipment_system: EquipmentSystem = null
+var skill_system: SkillSystem = null
 
 func _ready() -> void:
 	stage_system = StageSystem.new()
@@ -20,9 +21,18 @@ func _ready() -> void:
 	equipment_system.name = "EquipmentSystem"
 	add_child(equipment_system)
 
+	skill_system = SkillSystem.new()
+	skill_system.name = "SkillSystem"
+	add_child(skill_system)
+
 	if arena_placeholder != null:
 		arena_placeholder.stage_system = stage_system
 		arena_placeholder.equipment_system = equipment_system
+		arena_placeholder.skill_system = skill_system
+		if arena_placeholder.defender != null:
+			skill_system.defender = arena_placeholder.defender
+		if arena_placeholder.enemies_container != null:
+			skill_system.enemies_container = arena_placeholder.enemies_container
 		if hud_placeholder != null:
 			arena_placeholder.enemy_killed.connect(hud_placeholder.update_kill_count)
 		if progression_system != null:
@@ -31,8 +41,16 @@ func _ready() -> void:
 			arena_placeholder.defender.hp_changed.connect(hud_placeholder.update_defender_hp)
 			hud_placeholder.update_defender_hp(arena_placeholder.defender.current_hp, arena_placeholder.defender.max_hp)
 
+	skill_system.stage_system = stage_system
+	skill_system.progression_system = progression_system
+	skill_system.equipment_system = equipment_system
+	skill_system.skill_state_changed.connect(_on_skill_state_changed)
+
 	if hud_placeholder != null:
 		hud_placeholder.equipment_system = equipment_system
+		hud_placeholder.skill_system = skill_system
+		hud_placeholder.skill_requested.connect(_on_skill_requested)
+		hud_placeholder.skill_auto_toggled.connect(_on_skill_auto_toggled)
 
 	if equipment_system != null:
 		equipment_system.inventory_changed.connect(_on_equipment_changed)
@@ -62,13 +80,25 @@ func _ready() -> void:
 		)
 
 	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
-		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system)
+		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active())
 
 	_update_hud_progression()
 
+func _on_skill_requested(skill_name: String) -> void:
+	if skill_system != null:
+		skill_system.trigger_skill(skill_name)
+
+func _on_skill_auto_toggled(skill_name: String) -> void:
+	if skill_system != null:
+		skill_system.toggle_auto(skill_name)
+
+func _on_skill_state_changed() -> void:
+	if hud_placeholder != null:
+		hud_placeholder.queue_redraw()
+
 func _on_equipment_changed() -> void:
 	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
-		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system)
+		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
 	_update_hud_progression()
 
 func _on_upgrade_requested(type: String) -> void:
@@ -86,13 +116,15 @@ func _on_upgrade_requested(type: String) -> void:
 
 func _on_upgrade_applied(_type: String, _level: int) -> void:
 	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
-		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system)
+		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system, skill_system.is_overdrive_active() if skill_system != null else false)
 	_update_hud_progression()
 
 func _on_progression_updated(_current_gold: int) -> void:
 	_update_hud_progression()
 
 func _on_restart_requested() -> void:
+	if skill_system != null:
+		skill_system.reset_skills()
 	if equipment_system != null:
 		equipment_system.reset_equipment()
 	if progression_system != null:

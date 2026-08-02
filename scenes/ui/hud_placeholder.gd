@@ -3,6 +3,10 @@ extends Control
 
 signal upgrade_requested(type: String)
 signal restart_requested()
+signal skill_requested(skill_name: String)
+signal skill_auto_toggled(skill_name: String)
+
+var skill_system: SkillSystem = null
 
 var kill_count: int = 0
 var current_stage: int = 1
@@ -206,6 +210,35 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 			return
 
+		# Skill HUD Clicks (y: 626 to 686)
+		# Skill 1: Meteor
+		if Rect2(12, 626, 114, 60).has_point(pos):
+			skill_requested.emit("meteor")
+			accept_event()
+			return
+		elif Rect2(128, 626, 48, 60).has_point(pos):
+			skill_auto_toggled.emit("meteor")
+			accept_event()
+			return
+		# Skill 2: Freeze
+		elif Rect2(188, 626, 114, 60).has_point(pos):
+			skill_requested.emit("freeze")
+			accept_event()
+			return
+		elif Rect2(304, 626, 48, 60).has_point(pos):
+			skill_auto_toggled.emit("freeze")
+			accept_event()
+			return
+		# Skill 3: Overdrive
+		elif Rect2(364, 626, 114, 60).has_point(pos):
+			skill_requested.emit("overdrive")
+			accept_event()
+			return
+		elif Rect2(480, 626, 48, 60).has_point(pos):
+			skill_auto_toggled.emit("overdrive")
+			accept_event()
+			return
+
 		if Rect2(10, 765, 124, 170).has_point(pos):
 			upgrade_requested.emit("attack")
 			accept_event()
@@ -272,6 +305,9 @@ func _draw() -> void:
 	# Boss HUD Header Overlay
 	if is_boss_active:
 		_draw_boss_hud()
+
+	# Active Skills HUD Bar (y: 626 to 686)
+	_draw_skills_bar()
 
 	# Defender Stats & HP HUD Bar (y: 692 to 742)
 	_draw_combat_stats_bar()
@@ -617,6 +653,103 @@ func _draw_defeat_overlay() -> void:
 		var btn_text_pos: Vector2 = Vector2(270, 508)
 		draw_string(font, btn_text_pos + Vector2(1, 1), "RESTART RUN", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.0, 0.0, 0.0, 0.9))
 		draw_string(font, btn_text_pos, "RESTART RUN", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.08, 0.06, 0.02, 1.0))
+
+func _draw_skills_bar() -> void:
+	if skill_system == null:
+		return
+	var font: Font = ThemeDB.fallback_font
+	if font == null:
+		return
+
+	# Skill 1: Meteor
+	_draw_skill_card(
+		Rect2(12, 626, 114, 60),
+		Rect2(128, 626, 48, 60),
+		"METEOR",
+		skill_system.is_meteor_ready(),
+		false,
+		skill_system.meteor_cooldown,
+		0.0,
+		skill_system.meteor_auto,
+		Color(1.0, 0.5, 0.1, 1.0),
+		font
+	)
+
+	# Skill 2: Freeze
+	_draw_skill_card(
+		Rect2(188, 626, 114, 60),
+		Rect2(304, 626, 48, 60),
+		"FREEZE",
+		skill_system.is_freeze_ready(),
+		skill_system.is_freeze_active(),
+		skill_system.freeze_cooldown,
+		skill_system.freeze_active_timer,
+		skill_system.freeze_auto,
+		Color(0.3, 0.8, 1.0, 1.0),
+		font
+	)
+
+	# Skill 3: Overdrive
+	_draw_skill_card(
+		Rect2(364, 626, 114, 60),
+		Rect2(480, 626, 48, 60),
+		"OVERDRIVE",
+		skill_system.is_overdrive_ready(),
+		skill_system.is_overdrive_active(),
+		skill_system.overdrive_cooldown,
+		skill_system.overdrive_active_timer,
+		skill_system.overdrive_auto,
+		Color(0.9, 0.3, 0.95, 1.0),
+		font
+	)
+
+func _draw_skill_card(
+	btn_rect: Rect2,
+	auto_rect: Rect2,
+	title: String,
+	is_ready: bool,
+	is_active: bool,
+	cd: float,
+	active_timer: float,
+	auto_on: bool,
+	theme_color: Color,
+	font: Font
+) -> void:
+	var bg_col: Color = Color(0.08, 0.09, 0.12, 0.9)
+	var stroke_col: Color = Color(0.25, 0.3, 0.38, 0.6)
+	var status_text: String = "READY"
+	var status_col: Color = Color(0.6, 0.65, 0.7, 0.7)
+
+	if is_active:
+		bg_col = theme_color.darkened(0.6)
+		stroke_col = theme_color
+		status_text = "ACTIVE %.1fs" % active_timer
+		status_col = theme_color.lightened(0.3)
+	elif is_ready:
+		bg_col = theme_color.darkened(0.7)
+		stroke_col = theme_color.lightened(0.2)
+		status_text = "READY"
+		status_col = Color(1.0, 0.92, 0.4, 1.0)
+	elif cd > 0.0:
+		status_text = "CD %.1fs" % cd
+
+	_draw_rounded_rect_filled(btn_rect, 6.0, bg_col)
+	_draw_rounded_rect_stroke(btn_rect, 6.0, stroke_col, 1.5 if (is_ready or is_active) else 1.0)
+
+	var cx: float = btn_rect.position.x + btn_rect.size.x * 0.5
+	draw_string(font, Vector2(cx, btn_rect.position.y + 24), title, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, theme_color if (is_ready or is_active) else Color(0.6, 0.65, 0.7, 0.8))
+	draw_string(font, Vector2(cx, btn_rect.position.y + 44), status_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, status_col)
+
+	var auto_bg: Color = Color(0.08, 0.22, 0.12, 0.95) if auto_on else Color(0.06, 0.08, 0.11, 0.85)
+	var auto_stroke: Color = Color(0.25, 0.85, 0.45, 0.9) if auto_on else Color(0.25, 0.3, 0.35, 0.5)
+	_draw_rounded_rect_filled(auto_rect, 6.0, auto_bg)
+	_draw_rounded_rect_stroke(auto_rect, 6.0, auto_stroke, 1.2)
+
+	var acx: float = auto_rect.position.x + auto_rect.size.x * 0.5
+	draw_string(font, Vector2(acx, auto_rect.position.y + 24), "AUTO", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.8, 0.85, 0.9, 0.9) if auto_on else Color(0.5, 0.55, 0.6, 0.7))
+	var auto_val: String = "[ON]" if auto_on else "[OFF]"
+	var auto_val_col: Color = Color(0.3, 1.0, 0.5, 1.0) if auto_on else Color(0.5, 0.55, 0.6, 0.6)
+	draw_string(font, Vector2(acx, auto_rect.position.y + 42), auto_val, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, auto_val_col)
 
 func _draw_rounded_rect_filled(rect: Rect2, r: float, color: Color) -> void:
 	var pts: PackedVector2Array = _get_rounded_rect_points(rect, r)
