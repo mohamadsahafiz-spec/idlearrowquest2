@@ -4,7 +4,7 @@ extends Node2D
 @export var center: Vector2 = Vector2(270, 480)
 
 # Four framing environmental corner pillars
-var corner_positions := [
+var corner_positions: Array[Vector2] = [
 	Vector2(65, 220),   # Top Left
 	Vector2(475, 220),  # Top Right
 	Vector2(65, 710),   # Bottom Left
@@ -17,7 +17,7 @@ func _draw() -> void:
 	_draw_framing_arch(Vector2(270, 755), 230.0, 30.0, Color(0.2, 0.3, 0.4, 0.4))
 
 	# Corner Pillars / Torches / Structure Placeholders
-	for p in corner_positions:
+	for p: Vector2 in corner_positions:
 		_draw_corner_pillar(p)
 
 func _draw_corner_pillar(pos: Vector2) -> void:
@@ -45,7 +45,7 @@ func _draw_corner_pillar(pos: Vector2) -> void:
 	_draw_polyline_closed(pts_col, Color(0.4, 0.5, 0.6, 0.8), 1.0)
 
 	# Top Ember/Crystal Cap
-	var cap_pos := pos + Vector2(0, -36)
+	var cap_pos: Vector2 = pos + Vector2(0, -36)
 	_draw_ellipse_filled(cap_pos, 10.0, 6.0, Color(0.2, 0.5, 0.7, 0.9))
 	_draw_ellipse_stroke(cap_pos, 10.0, 6.0, Color(0.4, 0.8, 1.0, 0.9), 1.5)
 	
@@ -54,23 +54,23 @@ func _draw_corner_pillar(pos: Vector2) -> void:
 
 func _draw_framing_arch(pos: Vector2, rx: float, ry: float, color: Color) -> void:
 	var pts := PackedVector2Array()
-	var segments := 32
-	for i in range(segments + 1):
-		var a := float(i) / segments * PI
+	var segments: int = 32
+	for i: int in range(segments + 1):
+		var a: float = float(i) / float(segments) * PI
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_polyline(pts, color, 1.5, true)
 
 func _draw_ellipse_filled(pos: Vector2, rx: float, ry: float, color: Color, segments: int = 24) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments):
-		var a := i * TAU / segments
+	for i: int in range(segments):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_colored_polygon(pts, color)
 
 func _draw_ellipse_stroke(pos: Vector2, rx: float, ry: float, color: Color, width: float = 1.0, segments: int = 24) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments + 1):
-		var a := i * TAU / segments
+	for i: int in range(segments + 1):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_polyline(pts, color, width, true)
 

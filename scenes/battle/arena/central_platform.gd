@@ -20,13 +20,13 @@ func _draw() -> void:
 	_draw_ellipse_filled(center + Vector2(0, 10), tier1_rx + 8, tier1_ry + 5, Color(0.02, 0.04, 0.06, 0.6))
 
 	# Tier 1 Base (Isometric 3D extrusion)
-	var t1_base_pos := center
-	var t1_top_pos := center - Vector2(0, tier1_height)
+	var t1_base_pos: Vector2 = center
+	var t1_top_pos: Vector2 = center - Vector2(0, tier1_height)
 	_draw_isometric_cylinder(t1_base_pos, t1_top_pos, tier1_rx, tier1_ry, Color(0.2, 0.24, 0.32, 1.0), Color(0.28, 0.34, 0.44, 1.0), Color(0.4, 0.5, 0.65, 0.8))
 
 	# Tier 2 Pedestal
-	var t2_base_pos := t1_top_pos
-	var t2_top_pos := t2_base_pos - Vector2(0, tier2_height)
+	var t2_base_pos: Vector2 = t1_top_pos
+	var t2_top_pos: Vector2 = t2_base_pos - Vector2(0, tier2_height)
 	_draw_isometric_cylinder(t2_base_pos, t2_top_pos, tier2_rx, tier2_ry, Color(0.25, 0.3, 0.38, 1.0), Color(0.35, 0.42, 0.52, 1.0), Color(0.8, 0.65, 0.25, 0.9))
 
 	# Top Defender / Tower Placement Pad
@@ -35,7 +35,7 @@ func _draw() -> void:
 	_draw_ellipse_stroke(t2_top_pos, top_pad_rx - 5, top_pad_ry - 3, Color(0.3, 0.85, 0.95, 0.8), 1.5)
 
 	# Central Defender / Tower Platform Anchor Diamond Icon
-	var p_top := t2_top_pos
+	var p_top: Vector2 = t2_top_pos
 	var diamond := PackedVector2Array([
 		p_top + Vector2(0, -10),
 		p_top + Vector2(12, 0),
@@ -47,16 +47,16 @@ func _draw() -> void:
 
 func _draw_isometric_cylinder(base_pos: Vector2, top_pos: Vector2, rx: float, ry: float, side_color: Color, top_color: Color, rim_color: Color) -> void:
 	# Draw front half of side wall
-	var segments := 32
+	var segments: int = 32
 	var side_pts := PackedVector2Array()
 	
 	# Bottom half arc (0 to PI)
-	for i in range(segments + 1):
-		var a := float(i) / segments * PI
+	for i: int in range(segments + 1):
+		var a: float = float(i) / float(segments) * PI
 		side_pts.append(base_pos + Vector2(cos(a) * rx, sin(a) * ry))
 	# Top half arc reversed (PI to 0)
-	for i in range(segments + 1):
-		var a := PI - (float(i) / segments * PI)
+	for i: int in range(segments + 1):
+		var a: float = PI - (float(i) / float(segments) * PI)
 		side_pts.append(top_pos + Vector2(cos(a) * rx, sin(a) * ry))
 		
 	draw_colored_polygon(side_pts, side_color)
@@ -67,15 +67,15 @@ func _draw_isometric_cylinder(base_pos: Vector2, top_pos: Vector2, rx: float, ry
 
 func _draw_ellipse_filled(pos: Vector2, rx: float, ry: float, color: Color, segments: int = 36) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments):
-		var a := i * TAU / segments
+	for i: int in range(segments):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_colored_polygon(pts, color)
 
 func _draw_ellipse_stroke(pos: Vector2, rx: float, ry: float, color: Color, width: float = 1.0, segments: int = 36) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments + 1):
-		var a := i * TAU / segments
+	for i: int in range(segments + 1):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_polyline(pts, color, width, true)
 

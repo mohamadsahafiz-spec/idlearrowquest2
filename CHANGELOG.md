@@ -11,6 +11,9 @@
   - `ArenaFraming`: Four corner environmental framing structures and arches framing the battlefield.
 - Maintained clear top HUD (0..105) and bottom skill/navigation (750..960) zones.
 
+### Fixed
+- Fixed GDScript variable type inference warnings in `arena_rings.gd` and arena visual components for strict Godot 4.7.1 compatibility.
+
 ## [0.0.1] - Unreleased
 
 ### Fixed

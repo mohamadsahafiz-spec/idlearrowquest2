@@ -28,10 +28,10 @@ func _draw() -> void:
 	_draw_ellipse_stroke(center, inner_ring_rx, inner_ring_ry, Color(0.3, 0.85, 0.6, 0.85), 2.5)
 
 	# Radial path markers (Connecting outer ring to inner ring)
-	var angles := [0.0, PI/4, PI/2, 3*PI/4, PI, 5*PI/4, 3*PI/2, 7*PI/4]
-	for a in angles:
-		var start_p := center + Vector2(cos(a) * inner_ring_rx, sin(a) * inner_ring_ry)
-		var end_p := center + Vector2(cos(a) * outer_ring_rx, sin(a) * outer_ring_ry)
+	var angles: Array[float] = [0.0, PI/4, PI/2, 3*PI/4, PI, 5*PI/4, 3*PI/2, 7*PI/4]
+	for a: float in angles:
+		var start_p: Vector2 = center + Vector2(cos(a) * inner_ring_rx, sin(a) * inner_ring_ry)
+		var end_p: Vector2 = center + Vector2(cos(a) * outer_ring_rx, sin(a) * outer_ring_ry)
 		draw_line(start_p, end_p, Color(0.4, 0.6, 0.75, 0.3), 1.5, true)
 		
 		# Draw node markers at outer ring intersections
@@ -44,29 +44,29 @@ func _draw_ring_path(pos: Vector2, rx: float, ry: float, stroke_color: Color, fi
 
 func _draw_ellipse_filled(pos: Vector2, rx: float, ry: float, color: Color, segments: int = 48) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments):
-		var a := i * TAU / segments
+	for i: int in range(segments):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_colored_polygon(pts, color)
 
 func _draw_ellipse_stroke(pos: Vector2, rx: float, ry: float, color: Color, width: float = 1.0, segments: int = 48) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments + 1):
-		var a := i * TAU / segments
+	for i: int in range(segments + 1):
+		var a: float = float(i) * TAU / float(segments)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_polyline(pts, color, width, true)
 
 func _draw_dashed_ellipse(pos: Vector2, rx: float, ry: float, color: Color, width: float, dashes: int = 24) -> void:
-	for i in range(dashes):
+	for i: int in range(dashes):
 		if i % 2 == 0:
-			var a1 := float(i) * TAU / dashes
-			var a2 := float(i + 0.7) * TAU / dashes
+			var a1: float = float(i) * TAU / float(dashes)
+			var a2: float = float(i + 0.7) * TAU / float(dashes)
 			_draw_arc_ellipse(pos, rx, ry, a1, a2, color, width)
 
 func _draw_arc_ellipse(pos: Vector2, rx: float, ry: float, angle_start: float, angle_end: float, color: Color, width: float, segments: int = 8) -> void:
 	var pts := PackedVector2Array()
-	for i in range(segments + 1):
-		var t := float(i) / segments
-		var a := lerp(angle_start, angle_end, t)
+	for i: int in range(segments + 1):
+		var t: float = float(i) / float(segments)
+		var a: float = lerpf(angle_start, angle_end, t)
 		pts.append(pos + Vector2(cos(a) * rx, sin(a) * ry))
 	draw_polyline(pts, color, width, true)
