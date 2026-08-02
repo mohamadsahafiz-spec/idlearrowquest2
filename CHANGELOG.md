@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.0] - Unreleased
+
+### Added
+- Implemented Milestone 3 Stage + Wave Foundation:
+  - **Stage System (`StageSystem`)**:
+    - Created modular `StageSystem` node tracking `current_stage`, `current_wave`, `total_waves`, `enemies_killed_this_wave`, `enemies_required_this_wave`, and `stage_active`.
+    - Initialized Stage 1 wave progression: Wave 1 = 5 enemies, Wave 2 = 8 enemies, Wave 3 = 12 enemies (Total Waves = 3).
+    - Modular stage configuration structure ready for future stage scaling.
+  - **Controlled Wave Progression**:
+    - Enforced single active wave execution with controlled enemy spawns.
+    - Added wave completion transition delay (1.8s) displaying `"WAVE COMPLETE"` banner overlay before launching the next wave.
+    - Completed Wave 3 progression displaying `"BOSS INCOMING"` transition state without auto-spawning the boss.
+  - **Controlled Enemy Spawning & Combat Integration**:
+    - Integrated weighted Normal / Strong / Elite enemy tier pool with `StageSystem`.
+    - Prevented infinite respawning once a wave's required enemy count is fulfilled.
+    - Preserved complete combat pipeline: spawn → movement → defender targeting → projectile → damage/critical → enemy HP → enemy attack → defender HP → death → reward → kill registration.
+    - Kept Boss excluded from normal wave pool with `test_spawn_boss = false` by default.
+  - **Stage HUD (`HUDPlaceholder`)**:
+    - Added real-time Stage & Wave progress badge displaying Stage 1, Wave X / 3, and Enemies Y / Z.
+    - Added center-screen banner overlay for `"WAVE COMPLETE"` and `"BOSS INCOMING"` states.
+    - Preserved total "Kill Enemies: X" counter.
+
 ## [0.1.8] - Unreleased
 
 ### Added

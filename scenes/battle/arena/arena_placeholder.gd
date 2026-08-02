@@ -25,13 +25,28 @@ var kill_count: int = 0
 var respawn_timer: float = 0.0
 var pending_respawn: bool = false
 var current_enemy: EnemyPlaceholder = null
+var stage_system: StageSystem = null:
+	set(val):
+		stage_system = val
+		if stage_system != null:
+			if not stage_system.spawn_allowed_changed.is_connected(_on_spawn_allowed_changed):
+				stage_system.spawn_allowed_changed.connect(_on_spawn_allowed_changed)
 
 func _ready() -> void:
 	if defender != null:
 		defender.enemies_container = enemies_container
 		defender.projectiles_container = projectiles_container
 	_apply_debug_settings()
+	# Spawning will be triggered after stage_system is assigned or if null
+	call_deferred("_initial_spawn")
+
+func _initial_spawn() -> void:
 	spawn_enemy()
+
+func _on_spawn_allowed_changed(allowed: bool) -> void:
+	if allowed:
+		if current_enemy == null or not is_instance_valid(current_enemy) or current_enemy.is_dead:
+			spawn_enemy()
 
 func _apply_debug_settings() -> void:
 	if enemy_path != null:
@@ -79,8 +94,15 @@ func spawn_enemy() -> void:
 	if current_enemy != null and is_instance_valid(current_enemy) and not current_enemy.is_dead:
 		return
 
-	var tier: EnemyStats.Tier = get_random_enemy_tier()
-	_spawn_enemy_with_tier(tier)
+	if stage_system != null:
+		if not stage_system.can_spawn_enemy():
+			return
+		var tier: EnemyStats.Tier = get_random_enemy_tier()
+		_spawn_enemy_with_tier(tier)
+		stage_system.notify_enemy_spawned()
+	else:
+		var tier: EnemyStats.Tier = get_random_enemy_tier()
+		_spawn_enemy_with_tier(tier)
 
 func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
@@ -97,5 +119,11 @@ func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 func _on_enemy_died(_coins: int, _pos: Vector2) -> void:
 	kill_count += 1
 	enemy_killed.emit(kill_count)
-	pending_respawn = true
-	respawn_timer = respawn_delay
+	if stage_system != null:
+		stage_system.notify_enemy_killed()
+		if stage_system.can_spawn_enemy():
+			pending_respawn = true
+			respawn_timer = respawn_delay
+	else:
+		pending_respawn = true
+		respawn_timer = respawn_delay
