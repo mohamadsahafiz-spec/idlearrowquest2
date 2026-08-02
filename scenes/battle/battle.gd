@@ -61,6 +61,9 @@ func _ready() -> void:
 			stage_system.enemies_required_this_wave
 		)
 
+	if progression_system != null and arena_placeholder != null and arena_placeholder.defender != null:
+		progression_system.apply_to_defender(arena_placeholder.defender, equipment_system)
+
 	_update_hud_progression()
 
 func _on_equipment_changed() -> void:

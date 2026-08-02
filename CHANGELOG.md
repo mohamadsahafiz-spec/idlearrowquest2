@@ -2,6 +2,11 @@
 
 ## [0.4.0] - Unreleased
 
+### Fixed
+- Fixed bug where non-HP upgrades reset Defender Max HP to default 100.
+- `ProgressionSystem` now captures and preserves configured `DefenderStats` base stats.
+- `restore_base_stats()` on `DefenderPlaceholder` now correctly resets stats to initial configured base values upon restart.
+
 ### Added
 - Implemented Equipment + Loot Foundation:
   - **Infinite Progression**:

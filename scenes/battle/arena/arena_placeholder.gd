@@ -73,11 +73,7 @@ func reset_arena() -> void:
 		for child: Node in projectiles_container.get_children():
 			child.queue_free()
 	if defender != null:
-		if defender.stats != null:
-			defender.stats.max_hp = 100.0
-		defender.current_hp = defender.max_hp
-		defender.hp_changed.emit(defender.current_hp, defender.max_hp)
-		defender.queue_redraw()
+		defender.restore_base_stats()
 
 func _initial_spawn() -> void:
 	spawn_enemy()

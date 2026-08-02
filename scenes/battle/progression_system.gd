@@ -11,6 +11,12 @@ var speed_level: int = 1
 var crit_level: int = 1
 var hp_level: int = 1
 
+var base_attack: float = 0.0
+var base_max_hp: float = 0.0
+var base_attack_speed: float = 0.0
+var base_critical_chance: float = 0.0
+var base_captured: bool = false
+
 const MAX_SPEED: float = 4.0
 const MAX_CRIT: float = 0.80
 
@@ -30,27 +36,34 @@ func get_crit_cost() -> int:
 func get_hp_cost() -> int:
 	return 12 + (hp_level - 1) * 10
 
+func capture_base_stats(defender: DefenderPlaceholder) -> void:
+	if defender != null and defender.stats != null and not base_captured:
+		base_attack = defender.base_attack if defender.base_attack > 0.0 else defender.stats.attack
+		base_max_hp = defender.base_max_hp if defender.base_max_hp > 0.0 else defender.stats.max_hp
+		base_attack_speed = defender.base_attack_speed if defender.base_attack_speed > 0.0 else defender.stats.attack_speed
+		base_critical_chance = defender.base_critical_chance if defender.base_critical_chance > 0.0 else defender.stats.critical_chance
+		base_captured = true
+
 func get_attack_value(level: int = -1) -> float:
 	var l: int = attack_level if level < 0 else level
-	return 15.0 + float(l - 1) * 3.0
+	return base_attack + float(l - 1) * 3.0
 
 func get_speed_value(level: int = -1) -> float:
-	var l: int = attack_level if level < 0 else level
 	var raw_l: int = speed_level if level < 0 else level
 	if raw_l <= 20:
-		return 1.25 + float(raw_l - 1) * 0.10
+		return base_attack_speed + float(raw_l - 1) * 0.10
 	else:
-		var base: float = 3.15
+		var base_20: float = base_attack_speed + 19.0 * 0.10
 		var extra: float = float(raw_l - 20) * 0.10
-		return base + (extra / (1.0 + extra * 0.15))
+		return base_20 + (extra / (1.0 + extra * 0.15))
 
 func get_crit_value(level: int = -1) -> float:
 	var l: int = crit_level if level < 0 else level
-	return 0.05 + float(l - 1) * 0.02
+	return base_critical_chance + float(l - 1) * 0.02
 
 func get_hp_value(level: int = -1) -> float:
 	var l: int = hp_level if level < 0 else level
-	return 100.0 + float(l - 1) * 25.0
+	return base_max_hp + float(l - 1) * 25.0
 
 func is_speed_maxed() -> bool:
 	return false
@@ -122,6 +135,7 @@ func reset_progression() -> void:
 func apply_to_defender(defender: DefenderPlaceholder, equipment_system: EquipmentSystem = null) -> void:
 	if defender == null or defender.stats == null:
 		return
+	capture_base_stats(defender)
 	var old_max_hp: float = defender.max_hp
 
 	var eq_atk: float = equipment_system.get_total_attack_bonus() if equipment_system != null else 0.0

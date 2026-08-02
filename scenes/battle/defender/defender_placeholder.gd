@@ -37,11 +37,30 @@ var damage: float:
 	get:
 		return stats.get_attack_damage() if stats != null else 15.0
 
+var base_max_hp: float = 100.0
+var base_attack: float = 15.0
+var base_attack_speed: float = 1.25
+var base_critical_chance: float = 0.05
+
 func _ready() -> void:
 	if stats == null:
 		stats = DefenderStats.new()
+	base_max_hp = stats.max_hp
+	base_attack = stats.attack
+	base_attack_speed = stats.attack_speed
+	base_critical_chance = stats.critical_chance
 	current_hp = max_hp
 	hp_changed.emit(current_hp, max_hp)
+
+func restore_base_stats() -> void:
+	if stats != null:
+		stats.max_hp = base_max_hp
+		stats.attack = base_attack
+		stats.attack_speed = base_attack_speed
+		stats.critical_chance = base_critical_chance
+	current_hp = base_max_hp
+	hp_changed.emit(current_hp, base_max_hp)
+	queue_redraw()
 
 func take_damage(amount: float) -> void:
 	if current_hp <= 0.0:
