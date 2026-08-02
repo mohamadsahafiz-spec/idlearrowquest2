@@ -42,16 +42,17 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _on_hit_target() -> void:
-	if target != null and is_instance_valid(target):
+	if target != null and is_instance_valid(target) and not target.is_queued_for_deletion():
+		var valid_source: DefenderPlaceholder = source_maid if (is_instance_valid(source_maid) and not source_maid.is_queued_for_deletion()) else null
 		if target.has_method("take_damage_from_maid"):
-			target.take_damage_from_maid(damage, is_critical, source_maid)
+			target.take_damage_from_maid(damage, is_critical, valid_source)
 		elif target.has_method("take_damage"):
-			if is_instance_valid(source_maid):
-				source_maid.record_damage(damage, is_critical)
+			if valid_source != null:
+				valid_source.record_damage(damage, is_critical)
 			var target_was_alive: bool = not target.is_dead
 			target.take_damage(damage, is_critical)
-			if target_was_alive and target.is_dead and is_instance_valid(source_maid):
-				source_maid.record_kill()
+			if target_was_alive and target.is_dead and valid_source != null:
+				valid_source.record_kill()
 
 func _draw() -> void:
 	# Projectile visual: glowing energetic sphere with shadow, trail and core
