@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.6] - Unreleased
+
+### Added
+- **Visible In-Game DEV Panel**: Added a clickable top-bar `[DEV]` button opening a developer suite modal UI.
+- **Party Test Controls**: Added `[1]` to `[6]` party size overrides, Heal All, Kill Maid, and Kill All debug actions.
+- **World & Boss Test Overrides**: World select buttons (W1–W6), stage jump controls, force boss trigger, stage/world instant clear, and endless mode toggle.
+- **Economy & Combat Testing**: Gold adjusters (+10K, +1M, Set 0, Set 100K), upgrade resets, and fresh baseline initialization.
+- **Safe Reset & Isolation**: Added temporary test run reset and permanent save deletion with confirmation guard.
+
 ## [0.7.5] - Unreleased
 
 ### Added

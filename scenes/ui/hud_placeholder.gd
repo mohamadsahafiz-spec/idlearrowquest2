@@ -9,6 +9,7 @@ signal auto_upgrade_toggled()
 signal auto_equip_toggled()
 signal debug_sim_offline(seconds: float)
 signal claim_offline_requested()
+signal dev_toggled()
 
 var skill_system: SkillSystem = null
 var save_system: SaveSystem = null
@@ -150,6 +151,13 @@ func update_progression_info(
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var pos: Vector2 = event.position
+
+		# Top Bar DEV Button
+		if Rect2(470, 22, 55, 22).has_point(pos):
+			dev_toggled.emit()
+			accept_event()
+			queue_redraw()
+			return
 
 		# Top Bar Inventory / Equip Button
 		if Rect2(254, 18, 110, 65).has_point(pos):
@@ -343,6 +351,13 @@ func _draw() -> void:
 		var wave_str: String = "W: " + str(current_wave) + "/" + str(total_waves) + "  K: " + str(wave_kills) + "/" + str(wave_required_kills)
 		draw_string(font, Vector2(379, 38), stage_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 0.9, 0.4, 1.0))
 		draw_string(font, Vector2(379, 60), wave_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.92, 1.0, 0.95))
+
+	# DEV Button
+	var dev_btn_rect: Rect2 = Rect2(470, 22, 55, 22)
+	_draw_rounded_rect_filled(dev_btn_rect, 4.0, Color(0.8, 0.2, 0.2, 0.95))
+	_draw_rounded_rect_stroke(dev_btn_rect, 4.0, Color(1.0, 0.5, 0.5, 1.0), 1.0)
+	if font != null:
+		draw_string(font, Vector2(497, 37), "DEV", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color.WHITE)
 
 	# Boss HUD Header Overlay
 	if is_boss_active:

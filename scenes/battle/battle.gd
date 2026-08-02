@@ -9,6 +9,7 @@ var equipment_system: EquipmentSystem = null
 var skill_system: SkillSystem = null
 var maid_system: MaidSystem = null
 var save_system: SaveSystem = null
+var dev_panel: DevPanel = null
 
 func _ready() -> void:
 	stage_system = StageSystem.new()
@@ -106,6 +107,21 @@ func _ready() -> void:
 			stage_system.enemies_killed_this_wave,
 			stage_system.enemies_required_this_wave
 		)
+
+	dev_panel = DevPanel.new()
+	dev_panel.name = "DevPanel"
+	dev_panel.battle = self
+	dev_panel.stage_system = stage_system
+	dev_panel.progression_system = progression_system
+	dev_panel.equipment_system = equipment_system
+	dev_panel.maid_system = maid_system
+	dev_panel.save_system = save_system
+	dev_panel.arena_placeholder = arena_placeholder
+	dev_panel.visible = false
+	add_child(dev_panel)
+
+	if hud_placeholder != null:
+		hud_placeholder.dev_toggled.connect(_on_dev_toggled)
 
 	# Restore saved progress & check offline rewards
 	var save_data: Dictionary = save_system.load_game()
@@ -217,6 +233,31 @@ func _on_restart_requested() -> void:
 	if arena_placeholder != null:
 		arena_placeholder.spawn_enemy()
 	_update_hud_progression()
+
+func _on_dev_toggled() -> void:
+	if dev_panel != null:
+		dev_panel.visible = not dev_panel.visible
+
+func reset_to_fresh_state() -> void:
+	if stage_system != null:
+		stage_system.start_stage(1, 1)
+	if progression_system != null:
+		progression_system.attack_level = 1
+		progression_system.speed_level = 1
+		progression_system.crit_level = 1
+		progression_system.hp_level = 1
+		progression_system.gold = 0
+		progression_system.gold_changed.emit(0)
+		progression_system.upgrade_applied.emit("all", 1)
+	if equipment_system != null:
+		equipment_system.inventory.clear()
+		equipment_system.equipped.clear()
+		equipment_system.inventory_changed.emit()
+	if maid_system != null:
+		maid_system.party_slots = ["001", "", "", "", "", ""]
+		maid_system.party_changed.emit(maid_system.get_party())
+	if arena_placeholder != null:
+		arena_placeholder.reset_arena()
 
 func _update_hud_progression() -> void:
 	if hud_placeholder != null and progression_system != null:
