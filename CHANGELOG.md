@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.3] - Unreleased
+
+### Added
+- Implemented first enemy movement foundation (`EnemyPlaceholder`):
+  - Created a modular placeholder enemy using Godot primitives (crimson orb/diamond with core glow and ground shadow).
+  - Defined modular path routing (`EnemyPath`) from outer framing entry point through isometric ring waypoints down to central platform.
+  - Added smooth frame-by-frame movement along path waypoints, stopping automatically at central defender platform destination.
+  - Added path guide visualization and waypoint markers for visual testing feedback.
+
 ## [0.0.2] - Unreleased
 
 ### Added

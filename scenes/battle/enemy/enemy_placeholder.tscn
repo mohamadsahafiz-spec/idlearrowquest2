@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d1e2f3g4h5i6"]
+
+[ext_resource type="Script" path="res://scenes/battle/enemy/enemy_placeholder.gd" id="1_enemy"]
+
+[node name="EnemyPlaceholder" type="Node2D"]
+script = ExtResource("1_enemy")
