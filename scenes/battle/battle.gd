@@ -1,9 +1,11 @@
 class_name Battle
 extends Control
 
+const StageSystemScript = preload("res://scenes/battle/stage_system.gd")
+
 @onready var arena_placeholder: ArenaPlaceholder = $ArenaPlaceholder
 @onready var hud_placeholder: HUDPlaceholder = $HUDPlaceholder
-var stage_system: StageSystem = null
+var stage_system: StageSystemScript = null
 
 func _ready() -> void:
 	stage_system = StageSystem.new()
