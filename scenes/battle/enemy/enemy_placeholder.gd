@@ -199,7 +199,10 @@ func _draw() -> void:
 	_draw_ellipse_filled(shadow_pos, radius * 1.2, radius * 0.6, Color(0.02, 0.04, 0.06, 0.5))
 
 	# Tier Aura Rings
-	if stats != null and stats.tier == EnemyStats.Tier.ELITE:
+	if stats != null and stats.tier == EnemyStats.Tier.BOSS:
+		draw_arc(Vector2.ZERO, radius * 1.6, 0, TAU, 32, Color(1.0, 0.2, 0.3, 0.8), 2.5, true)
+		draw_arc(Vector2.ZERO, radius * 1.85, 0, TAU, 32, Color(1.0, 0.85, 0.2, 0.65), 1.5, true)
+	elif stats != null and stats.tier == EnemyStats.Tier.ELITE:
 		draw_arc(Vector2.ZERO, radius * 1.45, 0, TAU, 24, Color(0.8, 0.4, 1.0, 0.6), 1.5, true)
 	elif stats != null and stats.tier == EnemyStats.Tier.STRONG:
 		draw_arc(Vector2.ZERO, radius * 1.3, 0, TAU, 20, Color(1.0, 0.6, 0.2, 0.5), 1.0, true)
@@ -216,7 +219,9 @@ func _draw() -> void:
 
 	# Core Glow Center
 	var core_color: Color = Color(1.0, 0.9, 0.4, 0.95)
-	if stats != null and stats.tier == EnemyStats.Tier.ELITE:
+	if stats != null and stats.tier == EnemyStats.Tier.BOSS:
+		core_color = Color(1.0, 0.95, 0.2, 1.0)
+	elif stats != null and stats.tier == EnemyStats.Tier.ELITE:
 		core_color = Color(0.4, 0.95, 1.0, 0.95)
 	elif stats != null and stats.tier == EnemyStats.Tier.STRONG:
 		core_color = Color(1.0, 0.95, 0.5, 0.95)
@@ -267,10 +272,13 @@ func _draw_hp_bar() -> void:
 	if stats != null and stats.tier != EnemyStats.Tier.NORMAL:
 		var font: Font = ThemeDB.fallback_font
 		if font != null:
+			var is_boss: bool = (stats.tier == EnemyStats.Tier.BOSS)
+			var font_size: int = 11 if is_boss else 9
 			var tier_label: String = stats.get_tier_name().to_upper()
-			var label_pos: Vector2 = bar_pos + Vector2(bar_width * 0.5, -3.0)
-			draw_string(font, label_pos + Vector2(1, 1), tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.0, 0.0, 0.0, 0.8))
-			draw_string(font, label_pos, tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, enemy_color)
+			var label_pos: Vector2 = bar_pos + Vector2(bar_width * 0.5, -4.0 if is_boss else -3.0)
+			var text_color: Color = Color(1.0, 0.85, 0.25, 1.0) if is_boss else enemy_color
+			draw_string(font, label_pos + Vector2(1, 1), tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color(0.0, 0.0, 0.0, 0.9))
+			draw_string(font, label_pos, tier_label, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, text_color)
 
 	# Background rect
 	draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), Color(0.08, 0.1, 0.14, 0.85))

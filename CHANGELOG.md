@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.7] - Unreleased
+
+### Added
+- Implemented modular Boss enemy foundation using existing combat architecture:
+  - Added `Tier.BOSS` to `EnemyStats` with substantially higher stats (`max_hp = 1500.0`, `attack = 75.0`, `reward = 200`, `radius_multiplier = 2.2`).
+  - Implemented dual-ring aura visual effect, golden core glow, and distinct `"BOSS"` label rendering in `EnemyPlaceholder`.
+  - Created `spawn_boss()` method and `test_spawn_boss` test toggle in `ArenaPlaceholder` for manual/test spawning.
+  - Enforced single-boss constraint ensuring only one Boss can exist in the arena at a time.
+  - Preserved standard weighted spawning (`70% Normal`, `25% Strong`, `5% Elite`) when Boss test spawning is disabled.
+  - Maintained full movement, targeting, projectile hits, critical hits, defender damage, rewards, and kill counter pipeline with zero GDScript errors/warnings under Godot 4.7.1.
+
 ## [0.1.6] - Unreleased
 
 ### Added

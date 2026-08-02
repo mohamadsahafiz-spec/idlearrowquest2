@@ -4,6 +4,7 @@ extends Node2D
 signal enemy_killed(total_kills: int)
 
 @export var respawn_delay: float = 1.0
+@export var test_spawn_boss: bool = false
 @export var show_debug_visuals: bool = false:
 	set(val):
 		show_debug_visuals = val
@@ -56,16 +57,34 @@ func get_random_enemy_tier() -> EnemyStats.Tier:
 	else:
 		return EnemyStats.Tier.ELITE
 
+func spawn_boss() -> void:
+	if enemy_path == null or enemies_container == null:
+		return
+
+	if current_enemy != null and is_instance_valid(current_enemy) and not current_enemy.is_dead:
+		if current_enemy.stats != null and current_enemy.stats.tier == EnemyStats.Tier.BOSS:
+			return
+		current_enemy.queue_free()
+
+	_spawn_enemy_with_tier(EnemyStats.Tier.BOSS)
+
 func spawn_enemy() -> void:
+	if test_spawn_boss:
+		spawn_boss()
+		return
+
 	if enemy_path == null or enemies_container == null:
 		return
 
 	if current_enemy != null and is_instance_valid(current_enemy) and not current_enemy.is_dead:
 		return
 
+	var tier: EnemyStats.Tier = get_random_enemy_tier()
+	_spawn_enemy_with_tier(tier)
+
+func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
 	if enemy_instance != null:
-		var tier: EnemyStats.Tier = get_random_enemy_tier()
 		enemy_instance.stats = EnemyStats.create_for_tier(tier)
 		enemy_instance.apply_stats()
 		enemy_instance.defender_target = defender

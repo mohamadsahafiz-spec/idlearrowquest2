@@ -4,7 +4,8 @@ extends Resource
 enum Tier {
 	NORMAL,
 	STRONG,
-	ELITE
+	ELITE,
+	BOSS
 }
 
 @export var tier: Tier = Tier.NORMAL
@@ -36,6 +37,12 @@ static func create_for_tier(target_tier: Tier) -> EnemyStats:
 			stats.attack = 35.0
 			stats.attack_speed = 1.0
 			stats.reward = 60
+		Tier.BOSS:
+			stats.max_hp = 1500.0
+			stats.movement_speed = 75.0
+			stats.attack = 75.0
+			stats.attack_speed = 0.8
+			stats.reward = 200
 	return stats
 
 func get_max_hp() -> float:
@@ -62,6 +69,8 @@ func get_tier_name() -> String:
 			return "Strong"
 		Tier.ELITE:
 			return "Elite"
+		Tier.BOSS:
+			return "Boss"
 		_:
 			return "Normal"
 
@@ -71,6 +80,8 @@ func get_tier_color() -> Color:
 			return Color(0.95, 0.55, 0.15, 1.0)
 		Tier.ELITE:
 			return Color(0.75, 0.25, 0.95, 1.0)
+		Tier.BOSS:
+			return Color(0.85, 0.12, 0.2, 1.0)
 		_:
 			return Color(0.95, 0.25, 0.25, 1.0)
 
@@ -80,6 +91,8 @@ func get_tier_outline_color() -> Color:
 			return Color(1.0, 0.85, 0.5, 0.95)
 		Tier.ELITE:
 			return Color(0.9, 0.7, 1.0, 0.95)
+		Tier.BOSS:
+			return Color(1.0, 0.85, 0.2, 1.0)
 		_:
 			return Color(1.0, 0.85, 0.85, 0.9)
 
@@ -89,5 +102,7 @@ func get_tier_radius_multiplier() -> float:
 			return 1.25
 		Tier.ELITE:
 			return 1.55
+		Tier.BOSS:
+			return 2.2
 		_:
 			return 1.0
