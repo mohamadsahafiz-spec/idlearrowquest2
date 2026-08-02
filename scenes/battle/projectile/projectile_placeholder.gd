@@ -2,6 +2,7 @@ class_name ProjectilePlaceholder
 extends Node2D
 
 @export var speed: float = 380.0
+@export var damage: float = 15.0
 @export var hit_distance: float = 12.0
 @export var max_lifetime: float = 4.0
 
@@ -39,8 +40,9 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _on_hit_target() -> void:
-	# Modular hook for future hit/impact logic & damage calculations
-	pass
+	if target != null and is_instance_valid(target):
+		if target.has_method("take_damage"):
+			target.take_damage(damage)
 
 func _draw() -> void:
 	# Projectile visual: glowing energetic sphere with shadow and core

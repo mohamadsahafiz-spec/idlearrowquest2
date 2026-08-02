@@ -3,6 +3,7 @@ extends Node2D
 
 @export var detection_range: float = 240.0
 @export var fire_cooldown: float = 0.8
+@export var damage: float = 15.0
 @export var enemies_container: Node2D
 @export var projectiles_container: Node2D
 
@@ -37,6 +38,7 @@ func _fire_projectile() -> void:
 		var spawn_pos: Vector2 = global_position + Vector2(0, -13)
 		proj.global_position = spawn_pos
 		proj.setup(current_target)
+		proj.damage = damage
 		if projectiles_container != null:
 			projectiles_container.add_child(proj)
 		elif get_parent() != null:

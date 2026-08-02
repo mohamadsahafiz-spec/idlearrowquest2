@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.6] - Unreleased
+
+### Added
+- Implemented first enemy HP and damage loop:
+  - Added configurable `max_hp` (100.0) and `current_hp` tracking to `EnemyPlaceholder` with `take_damage(amount)` method.
+  - Added safe HP clamping at 0.0 with enemy remaining active for testing damage behavior.
+  - Added dynamically rendered enemy HP health bar above enemy head (color-shifting green -> yellow -> red based on HP %).
+  - Added animated floating damage numbers (`-15`) on each projectile hit floating upward and fading out.
+  - Configured projectile hit impact to inflict defender weapon damage (`damage = 15.0`).
+  - Preserved existing movement, targeting, and projectile behaviors.
+
 ## [0.0.5] - Unreleased
 
 ### Added
