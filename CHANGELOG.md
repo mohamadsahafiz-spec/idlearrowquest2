@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.5] - Unreleased
+
+### Added
+- Implemented projectile firing foundation from defender to active target (`ProjectilePlaceholder`):
+  - Created a Godot-native primitive projectile scene (`projectile_placeholder.tscn` / `projectile_placeholder.gd`) rendered as a glowing orb with core and shadow.
+  - Added automatic weapon firing in `DefenderPlaceholder` with configurable cooldown interval (`fire_cooldown = 0.8s`).
+  - Added homing trajectory movement towards target position.
+  - Added proximity hit detection (`hit_distance = 12.0px`) that safely frees projectile upon reaching target.
+  - Added automatic target validation and lifetime checks (`max_lifetime = 4.0s`) to clean up orphaned projectiles.
+  - Added `Projectiles` node container to `ArenaPlaceholder` for clean projectile node lifecycle management.
+  - Retained targeting debug line and lock-on reticle visuals for testing feedback.
+
 ## [0.0.4] - Unreleased
 
 ### Added

@@ -8,12 +8,14 @@ extends Node2D
 @onready var framing: ArenaFraming = $Framing
 @onready var defender: DefenderPlaceholder = $DefenderPlaceholder
 @onready var enemies_container: Node2D = $Enemies
+@onready var projectiles_container: Node2D = $Projectiles
 
 const ENEMY_SCENE: PackedScene = preload("res://scenes/battle/enemy/enemy_placeholder.tscn")
 
 func _ready() -> void:
 	if defender != null:
 		defender.enemies_container = enemies_container
+		defender.projectiles_container = projectiles_container
 	spawn_first_enemy()
 
 func spawn_first_enemy() -> void:

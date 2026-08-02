@@ -30,3 +30,5 @@ script = ExtResource("6_framing")
 position = Vector2(270, 454)
 
 [node name="Enemies" type="Node2D" parent="."]
+
+[node name="Projectiles" type="Node2D" parent="."]

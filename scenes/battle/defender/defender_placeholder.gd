@@ -2,16 +2,45 @@ class_name DefenderPlaceholder
 extends Node2D
 
 @export var detection_range: float = 240.0
+@export var fire_cooldown: float = 0.8
 @export var enemies_container: Node2D
+@export var projectiles_container: Node2D
+
+const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/projectile/projectile_placeholder.tscn")
 
 var current_target: EnemyPlaceholder = null
+var fire_timer: float = 0.0
 
 func _ready() -> void:
 	pass
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_update_target()
+	_update_firing(delta)
 	queue_redraw()
+
+func _update_firing(delta: float) -> void:
+	if current_target != null and is_instance_valid(current_target):
+		fire_timer -= delta
+		if fire_timer <= 0.0:
+			_fire_projectile()
+			fire_timer = fire_cooldown
+	else:
+		fire_timer = 0.0
+
+func _fire_projectile() -> void:
+	if current_target == null or not is_instance_valid(current_target):
+		return
+
+	var proj: ProjectilePlaceholder = PROJECTILE_SCENE.instantiate() as ProjectilePlaceholder
+	if proj != null:
+		var spawn_pos: Vector2 = global_position + Vector2(0, -13)
+		proj.global_position = spawn_pos
+		proj.setup(current_target)
+		if projectiles_container != null:
+			projectiles_container.add_child(proj)
+		elif get_parent() != null:
+			get_parent().add_child(proj)
 
 func _update_target() -> void:
 	# Validate current target if exists
