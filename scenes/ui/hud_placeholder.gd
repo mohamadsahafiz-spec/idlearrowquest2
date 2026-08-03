@@ -231,6 +231,16 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 			return
 
+		if stage_system != null and stage_system.is_progression_interrupted and stage_system.interrupt_reason != "defeat":
+			if Rect2(150, 455, 240, 52).has_point(pos):
+				stage_system.acknowledge_interrupt()
+				accept_event()
+				queue_redraw()
+				return
+			if Rect2(50, 280, 440, 260).has_point(pos):
+				accept_event()
+				return
+
 		if stage_system != null and stage_system.is_farming_mode:
 			if Rect2(371, 52, 90, 26).has_point(pos):
 				challenge_requested.emit()
@@ -378,9 +388,11 @@ func _draw() -> void:
 	# Defender Stats & HP HUD Bar (y: 692 to 742)
 	_draw_combat_stats_bar()
 
-	# Victory / Defeat Overlay
+	# Victory / Defeat / Interrupt Overlay
 	if show_defeat:
 		_draw_defeat_overlay()
+	elif stage_system != null and stage_system.is_progression_interrupted and stage_system.interrupt_reason != "defeat":
+		_draw_interrupt_overlay()
 	elif show_victory:
 		_draw_victory_overlay()
 	elif not banner_text.is_empty():
@@ -581,6 +593,42 @@ func _draw_victory_overlay() -> void:
 
 		draw_string(font, subtitle_pos + Vector2(1, 1), sub_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 17, Color(0.0, 0.0, 0.0, 0.85))
 		draw_string(font, subtitle_pos, sub_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 17, Color(0.85, 0.98, 0.9, 1.0))
+
+func _draw_interrupt_overlay() -> void:
+	if stage_system == null or not stage_system.is_progression_interrupted or stage_system.interrupt_reason == "defeat":
+		return
+	var font: Font = ThemeDB.fallback_font
+	if font == null:
+		return
+
+	# Dim background
+	draw_rect(Rect2(0, 0, 540, 960), Color(0.0, 0.0, 0.0, 0.75))
+
+	var modal_rect: Rect2 = Rect2(50, 280, 440, 260)
+	_draw_rounded_rect_filled(modal_rect, 12.0, Color(0.06, 0.09, 0.16, 0.98))
+	_draw_rounded_rect_stroke(modal_rect, 12.0, Color(0.3, 0.75, 1.0, 1.0), 2.5)
+
+	var title_text: String = "PROGRESSION UNLOCK"
+	if stage_system.interrupt_reason == "slot_unlocked":
+		title_text = "SKILL SLOT UNLOCKED"
+	elif stage_system.interrupt_reason == "maid_unlocked":
+		title_text = "MAID UNLOCKED"
+
+	draw_string(font, Vector2(270, 325), title_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(1.0, 0.88, 0.2, 1.0))
+
+	var detail_text: String = stage_system.interrupt_detail
+	if detail_text.is_empty():
+		detail_text = "New progression feature unlocked!"
+	draw_string(font, Vector2(270, 370), detail_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 15, Color(0.9, 0.95, 1.0, 0.95))
+
+	var desc_text: String = "Action required: Review your new loadout."
+	draw_string(font, Vector2(270, 405), desc_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.7, 0.8, 0.9, 0.8))
+
+	# Confirm / Resume button
+	var btn_rect: Rect2 = Rect2(150, 455, 240, 52)
+	_draw_rounded_rect_filled(btn_rect, 8.0, Color(0.15, 0.55, 0.85, 0.95))
+	_draw_rounded_rect_stroke(btn_rect, 8.0, Color(0.4, 0.8, 1.0, 1.0), 1.5)
+	draw_string(font, Vector2(270, 488), "ACKNOWLEDGE & RESUME", HORIZONTAL_ALIGNMENT_CENTER, -1, 14, Color.WHITE)
 
 func _draw_loot_notification() -> void:
 	if notification_timer <= 0.0 or notification_text.is_empty():

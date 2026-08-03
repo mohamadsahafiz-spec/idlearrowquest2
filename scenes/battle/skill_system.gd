@@ -60,23 +60,21 @@ const MAX_SLOTS: int = 6
 var unlocked_skills: Dictionary = {
 	"fireball": {"level": 1, "duplicates": 0},
 	"water_arrows": {"level": 1, "duplicates": 0},
-	"stone_spikes": {"level": 1, "duplicates": 0},
-	"wind_blades": {"level": 1, "duplicates": 0},
-	"firewall": {"level": 1, "duplicates": 0},
-	"meteor": {"level": 1, "duplicates": 0}
+	"stone_spikes": {"level": 1, "duplicates": 0}
 }
 
 var equipped_slots: Array[String] = [
 	"fireball",
 	"water_arrows",
 	"stone_spikes",
-	"wind_blades",
-	"firewall",
-	"meteor"
+	"",
+	"",
+	""
 ]
 
 var slot_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var slot_autos: Array[bool] = [false, false, false, false, false, false]
+var global_auto_skills: bool = true
 
 var defender: DefenderPlaceholder = null
 var enemies_container: Node2D = null
@@ -212,9 +210,13 @@ func trigger_skill(skill_name: String) -> bool:
 	return false
 
 func can_auto_trigger() -> bool:
+	if not global_auto_skills:
+		return false
 	if defender == null or not is_instance_valid(defender) or defender.current_hp <= 0.0:
 		return false
 	if stage_system != null:
+		if stage_system.is_progression_interrupted:
+			return false
 		if stage_system.state != StageSystem.State.WAVE_ACTIVE and stage_system.state != StageSystem.State.BOSS_ACTIVE:
 			return false
 	return true
@@ -327,7 +329,8 @@ func to_dict() -> Dictionary:
 	return {
 		"unlocked_skills": unlocked_skills,
 		"equipped_slots": equipped_slots,
-		"slot_autos": slot_autos
+		"slot_autos": slot_autos,
+		"global_auto_skills": global_auto_skills
 	}
 
 func from_dict(data: Dictionary) -> void:
@@ -341,6 +344,8 @@ func from_dict(data: Dictionary) -> void:
 		var sa: Array = data["slot_autos"]
 		for i in range(min(sa.size(), MAX_SLOTS)):
 			slot_autos[i] = bool(sa[i])
+	if data.has("global_auto_skills"):
+		global_auto_skills = bool(data["global_auto_skills"])
 	skill_state_changed.emit()
 
 func _draw() -> void:

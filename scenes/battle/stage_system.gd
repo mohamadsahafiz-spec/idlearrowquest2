@@ -43,6 +43,8 @@ var is_endless_mode: bool = false
 var is_farming_mode: bool = false
 var is_progression_interrupted: bool = false
 var interrupt_reason: String = ""
+var interrupt_detail: String = ""
+var highest_slot_acknowledged: int = 3
 
 var is_world_1_completed: bool:
 	get:
@@ -50,6 +52,12 @@ var is_world_1_completed: bool:
 	set(val):
 		if val and not completed_worlds.has(1):
 			completed_worlds.append(1)
+
+func get_slot_count_for_world(w_id: int) -> int:
+	if w_id <= 1: return 3
+	elif w_id == 2: return 4
+	elif w_id == 3: return 5
+	else: return 6
 
 func _ready() -> void:
 	start_stage(current_stage, current_world)
@@ -73,14 +81,29 @@ func start_stage(stage_num: int, world_id: int = -1) -> void:
 	boss_state_changed.emit(false, "", 0.0, 0.0)
 	victory_overlay_changed.emit(false, current_stage)
 	defeat_overlay_changed.emit(false)
+
+	var req_slots: int = get_slot_count_for_world(current_world)
+	if req_slots > highest_slot_acknowledged:
+		highest_slot_acknowledged = req_slots
+		trigger_progression_interrupt("slot_unlocked", "World " + str(current_world) + " Unlocked Skill Slot " + str(req_slots) + "!")
+
 	_setup_wave(current_wave)
 
 func trigger_progression_interrupt(reason: String, detail: String = "") -> void:
 	is_progression_interrupted = true
 	interrupt_reason = reason
+	interrupt_detail = detail
 	progression_interrupted.emit(reason, detail)
 	if reason == "defeat":
 		trigger_defeat()
+
+func acknowledge_interrupt() -> void:
+	is_progression_interrupted = false
+	var prev_reason: String = interrupt_reason
+	interrupt_reason = ""
+	interrupt_detail = ""
+	if prev_reason == "defeat":
+		acknowledge_defeat_and_continue_farming()
 
 func trigger_defeat() -> void:
 	state = State.DEFEAT

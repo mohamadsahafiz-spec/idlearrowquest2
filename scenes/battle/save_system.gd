@@ -107,6 +107,7 @@ func save_game() -> void:
 		"is_endless_mode": stage_system.is_endless_mode,
 		"is_farming_mode": stage_system.is_farming_mode,
 		"world_1_completed": stage_system.is_world_1_completed,
+		"highest_slot_acknowledged": stage_system.highest_slot_acknowledged,
 		"gold": progression_system.gold,
 		"attack_level": progression_system.attack_level,
 		"speed_level": progression_system.speed_level,
@@ -171,6 +172,9 @@ func apply_save_data(data: Dictionary) -> float:
 		if bool(data.get("world_1_completed", false)) and not stage_system.completed_worlds.has(1):
 			stage_system.completed_worlds.append(1)
 		
+		if data.has("highest_slot_acknowledged"):
+			stage_system.highest_slot_acknowledged = int(data["highest_slot_acknowledged"])
+
 		stage_system.start_stage(loaded_stage, loaded_world)
 
 	if progression_system != null:

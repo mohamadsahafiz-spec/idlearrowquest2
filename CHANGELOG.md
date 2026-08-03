@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.1] - 2026-08-03
+
+### Added
+- **Elemental Counter Loop Integration**: Verified 🔥 Fire > 🌪 Wind > 🪨 Earth > 💧 Water > 🔥 Fire loop with 1.5x advantage and 0.6x disadvantage multipliers.
+- **Progression Interrupts**: Wired Battle Maid unlocks and World-based Skill Slot unlocks (3 to 6 slots) into progression interrupts with player acknowledgement overlay.
+- **Global Auto Skills Master Control**: Added canonical master toggle (`AUTO SKILLS [ON/OFF]`) in settings and HUD status bar.
+- **Starter Skill Ownership**: Streamlined default starter skill set to 3 common skills (`fireball`, `water_arrows`, `stone_spikes`).
+- **Legacy Skill Cleanup**: Isolated and deprecated legacy Freeze/Overdrive active skill calls while preserving save migration compatibility.
+
 ## [0.9.0] - 2026-08-03
 
 ### Added

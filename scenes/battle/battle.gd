@@ -99,12 +99,16 @@ func _ready() -> void:
 		hud_placeholder.upgrade_requested.connect(_on_upgrade_requested)
 		hud_placeholder.restart_requested.connect(_on_restart_requested)
 
+	if maid_system != null:
+		maid_system.maid_unlocked.connect(_on_maid_unlocked)
+
 	if stage_system != null and hud_placeholder != null:
 		stage_system.stage_updated.connect(hud_placeholder.update_stage_info)
 		stage_system.banner_text_changed.connect(hud_placeholder.update_banner_text)
 		stage_system.boss_state_changed.connect(hud_placeholder.update_boss_info)
 		stage_system.victory_overlay_changed.connect(hud_placeholder.update_victory_overlay)
 		stage_system.defeat_overlay_changed.connect(hud_placeholder.update_defeat_overlay)
+		stage_system.progression_interrupted.connect(_on_progression_interrupted)
 		hud_placeholder.update_stage_info(
 			stage_system.current_stage,
 			stage_system.current_wave,
@@ -189,6 +193,16 @@ func _on_skill_slot_auto_toggled(slot_idx: int) -> void:
 		skill_system.toggle_slot_auto(slot_idx)
 
 func _on_skill_state_changed() -> void:
+	if hud_placeholder != null:
+		hud_placeholder.queue_redraw()
+
+func _on_maid_unlocked(maid_id: String) -> void:
+	var m_data: Dictionary = MaidRegistry.get_maid(maid_id)
+	var name_str: String = str(m_data.get("name", maid_id))
+	if stage_system != null:
+		stage_system.trigger_progression_interrupt("maid_unlocked", "New Battle Maid Unlocked: " + name_str + "!")
+
+func _on_progression_interrupted(_reason: String, _detail: String) -> void:
 	if hud_placeholder != null:
 		hud_placeholder.queue_redraw()
 
