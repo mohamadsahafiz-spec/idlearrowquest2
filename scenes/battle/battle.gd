@@ -197,7 +197,7 @@ func _on_skill_state_changed() -> void:
 		hud_placeholder.queue_redraw()
 
 func _on_maid_unlocked(maid_id: String) -> void:
-	var m_data: Dictionary = MaidRegistry.get_maid(maid_id)
+	var m_data: Dictionary = MaidRegistry.get_maid_info(maid_id)
 	var name_str: String = str(m_data.get("name", maid_id))
 	if stage_system != null:
 		stage_system.trigger_progression_interrupt("maid_unlocked", "New Battle Maid Unlocked: " + name_str + "!")
