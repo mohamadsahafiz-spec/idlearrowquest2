@@ -267,8 +267,9 @@ func spawn_enemy() -> void:
 func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 	var enemy_instance: EnemyPlaceholder = ENEMY_SCENE.instantiate() as EnemyPlaceholder
 	if enemy_instance != null:
+		var world_id: int = stage_system.current_world if stage_system != null else 1
 		var stage_num: int = stage_system.current_stage if stage_system != null else 1
-		enemy_instance.stats = EnemyStats.create_for_tier(tier, stage_num)
+		enemy_instance.stats = EnemyStats.create_for_tier(tier, stage_num, world_id)
 		if world_presentation != null:
 			enemy_instance.stats.enemy_name = world_presentation.get_enemy_name_for_stage(stage_num, tier)
 		enemy_instance.apply_stats()

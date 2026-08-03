@@ -124,9 +124,9 @@ func _gui_input(event: InputEvent) -> void:
 			queue_redraw()
 			return
 
-		# 2. WORLD SELECT (W1 - W6)
-		for w in range(1, 7):
-			var rect: Rect2 = Rect2(40 + (w - 1) * 75, 255, 65, 36)
+		# 2. WORLD SELECT (W1 - W5)
+		for w in range(1, 6):
+			var rect: Rect2 = Rect2(40 + (w - 1) * 90, 255, 80, 36)
 			if rect.has_point(pos):
 				_trigger_press_feedback(rect)
 				if stage_system != null:
@@ -380,14 +380,14 @@ func _draw() -> void:
 	# 2. WORLD / STAGE CONTROLS
 	draw_string(font, Vector2(40, 248), "WORLD / STAGE OVERRIDE:", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.8, 0.85, 0.9, 0.9))
 	var cur_w: int = stage_system.current_world if stage_system != null else 1
-	for w in range(1, 7):
-		var rect: Rect2 = Rect2(40 + (w - 1) * 75, 255, 65, 36)
+	for w in range(1, 6):
+		var rect: Rect2 = Rect2(40 + (w - 1) * 90, 255, 80, 36)
 		var is_sel: bool = (w == cur_w)
 		var bg: Color = Color(0.2, 0.35, 0.5, 0.95) if is_sel else Color(0.1, 0.15, 0.22, 0.9)
 		var stroke: Color = Color(0.4, 0.7, 1.0, 1.0) if is_sel else Color(0.25, 0.35, 0.45, 0.6)
 		_draw_rounded_rect_filled(rect, 6.0, bg)
 		_draw_rounded_rect_stroke(rect, 6.0, stroke, 1.2)
-		draw_string(font, Vector2(rect.position.x + 32, rect.position.y + 22), "W" + str(w), HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color.WHITE)
+		draw_string(font, Vector2(rect.position.x + 40, rect.position.y + 22), "W" + str(w), HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color.WHITE)
 
 	_draw_btn(Rect2(40, 300, 80, 36), "-1 STG", Color(0.12, 0.16, 0.24, 0.9), Color(0.4, 0.5, 0.6, 0.8))
 	_draw_btn(Rect2(130, 300, 80, 36), "+1 STG", Color(0.12, 0.16, 0.24, 0.9), Color(0.4, 0.5, 0.6, 0.8))

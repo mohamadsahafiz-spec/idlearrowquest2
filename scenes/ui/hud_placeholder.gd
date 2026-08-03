@@ -3,6 +3,8 @@ extends Control
 
 signal upgrade_requested(type: String)
 signal restart_requested()
+signal continue_requested()
+signal challenge_requested()
 signal skill_requested(skill_name: String)
 signal skill_auto_toggled(skill_name: String)
 signal auto_upgrade_toggled()
@@ -13,6 +15,7 @@ signal dev_toggled()
 
 var skill_system: SkillSystem = null
 var save_system: SaveSystem = null
+var stage_system: StageSystem = null
 
 var show_welcome_back: bool = false
 var offline_rewards_data: Dictionary = {}
@@ -222,9 +225,16 @@ func _gui_input(event: InputEvent) -> void:
 
 		if show_defeat:
 			if Rect2(150, 475, 240, 52).has_point(pos):
-				restart_requested.emit()
+				continue_requested.emit()
 				accept_event()
 			return
+
+		if stage_system != null and stage_system.is_farming_mode:
+			if Rect2(371, 52, 90, 26).has_point(pos):
+				challenge_requested.emit()
+				accept_event()
+				queue_redraw()
+				return
 
 		# Welcome Back Modal Claim click
 		if show_welcome_back:
@@ -348,8 +358,14 @@ func _draw() -> void:
 
 	if font != null:
 		var stage_str: String = "Stage " + str(current_stage)
+		if stage_system != null and stage_system.is_farming_mode:
+			stage_str += " [FARM]"
+			var ch_rect: Rect2 = Rect2(371, 52, 90, 26)
+			_draw_rounded_rect_filled(ch_rect, 4.0, Color(0.85, 0.25, 0.25, 0.95))
+			_draw_rounded_rect_stroke(ch_rect, 4.0, Color(1.0, 0.6, 0.6, 1.0), 1.0)
+			draw_string(font, Vector2(416, 69), "CHALLENGE", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color.WHITE)
 		var wave_str: String = "W: " + str(current_wave) + "/" + str(total_waves) + "  K: " + str(wave_kills) + "/" + str(wave_required_kills)
-		draw_string(font, Vector2(379, 38), stage_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1.0, 0.9, 0.4, 1.0))
+		draw_string(font, Vector2(379, 38), stage_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1.0, 0.9, 0.4, 1.0))
 		draw_string(font, Vector2(379, 60), wave_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.92, 1.0, 0.95))
 
 	# DEV Button
@@ -709,14 +725,14 @@ func _draw_defeat_overlay() -> void:
 		draw_string(font, subtitle_pos + Vector2(1, 1), "Defender Destroyed", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.0, 0.0, 0.0, 0.85))
 		draw_string(font, subtitle_pos, "Defender Destroyed", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.95, 0.75, 0.75, 1.0))
 
-		# Restart Run Button
+		# Continue Button
 		var btn_rect: Rect2 = Rect2(150, 475, 240, 52)
 		_draw_rounded_rect_filled(btn_rect, 8.0, Color(0.85, 0.65, 0.15, 0.95))
 		_draw_rounded_rect_stroke(btn_rect, 8.0, Color(1.0, 0.88, 0.3, 1.0), 1.5)
 
 		var btn_text_pos: Vector2 = Vector2(270, 508)
-		draw_string(font, btn_text_pos + Vector2(1, 1), "RESTART RUN", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.0, 0.0, 0.0, 0.9))
-		draw_string(font, btn_text_pos, "RESTART RUN", HORIZONTAL_ALIGNMENT_CENTER, -1, 16, Color(0.08, 0.06, 0.02, 1.0))
+		draw_string(font, btn_text_pos + Vector2(1, 1), "CONTINUE (FARM)", HORIZONTAL_ALIGNMENT_CENTER, -1, 15, Color(0.0, 0.0, 0.0, 0.9))
+		draw_string(font, btn_text_pos, "CONTINUE (FARM)", HORIZONTAL_ALIGNMENT_CENTER, -1, 15, Color(0.08, 0.06, 0.02, 1.0))
 
 func _draw_skills_bar() -> void:
 	if skill_system == null:

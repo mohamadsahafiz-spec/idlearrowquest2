@@ -16,10 +16,15 @@ enum Tier {
 @export var attack_speed: float = 1.0
 @export var reward: int = 10
 
-static func create_for_tier(target_tier: Tier, stage_level: int = 1) -> EnemyStats:
+static func create_for_tier(target_tier: Tier, stage_level: int = 1, world_id: int = 1) -> EnemyStats:
 	var stats: EnemyStats = EnemyStats.new()
 	stats.tier = target_tier
-	var scale_mult: float = 1.0 + maxf(0.0, float(stage_level - 1)) * 0.35
+	var cum_stages: int = WorldRegistry.get_cumulative_stages_before(world_id)
+	var global_stage: int = cum_stages + stage_level
+	var world_scale: float = 1.0 + float(world_id - 1) * 0.45
+	var stage_scale: float = maxf(0.0, float(stage_level - 1)) * 0.22
+	var global_scale: float = pow(float(global_stage - 1) * 0.012, 1.25)
+	var scale_mult: float = (1.0 + stage_scale) * world_scale + global_scale
 	match target_tier:
 		Tier.NORMAL:
 			stats.max_hp = 100.0 * scale_mult

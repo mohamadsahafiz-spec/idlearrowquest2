@@ -6,8 +6,7 @@ enum WorldID {
 	ENCHANTED_FOREST = 2,
 	FROZEN_KINGDOM = 3,
 	GOTHIC_REALM = 4,
-	INFERNAL_REALM = 5,
-	CELESTIAL_REALM = 6
+	INFERNAL_REALM = 5
 }
 
 enum StageVariant {
@@ -21,11 +20,11 @@ var current_world: int = 1
 var current_variant: StageVariant = StageVariant.ROYAL_OUTSKIRTS
 
 func get_variant_for_stage(stage_num: int) -> StageVariant:
-	if stage_num <= 3:
+	if stage_num <= 12:
 		return StageVariant.ROYAL_OUTSKIRTS
-	elif stage_num <= 6:
+	elif stage_num <= 25:
 		return StageVariant.KINGDOM_ROAD
-	elif stage_num <= 9:
+	elif stage_num <= 38:
 		return StageVariant.DAMAGED_VILLAGE
 	else:
 		return StageVariant.ROYAL_CASTLE_FRONT
@@ -55,7 +54,6 @@ func get_accent_color() -> Color:
 		3: return Color(0.3, 0.7, 0.95)
 		4: return Color(0.6, 0.3, 0.7)
 		5: return Color(0.9, 0.3, 0.2)
-		6: return Color(0.95, 0.85, 0.3)
 	return Color(0.3, 0.8, 0.4)
 
 func get_enemy_name_for_stage(stage_num: int, tier: EnemyStats.Tier) -> String:

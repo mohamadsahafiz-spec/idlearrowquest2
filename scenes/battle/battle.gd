@@ -73,6 +73,7 @@ func _ready() -> void:
 	if hud_placeholder != null:
 		hud_placeholder.equipment_system = equipment_system
 		hud_placeholder.skill_system = skill_system
+		hud_placeholder.stage_system = stage_system
 		hud_placeholder.save_system = save_system
 		hud_placeholder.skill_requested.connect(_on_skill_requested)
 		hud_placeholder.skill_auto_toggled.connect(_on_skill_auto_toggled)
@@ -80,6 +81,8 @@ func _ready() -> void:
 		hud_placeholder.auto_equip_toggled.connect(_on_auto_equip_toggled)
 		hud_placeholder.debug_sim_offline.connect(_on_debug_sim_offline)
 		hud_placeholder.claim_offline_requested.connect(_on_claim_offline_requested)
+		hud_placeholder.continue_requested.connect(_on_continue_requested)
+		hud_placeholder.challenge_requested.connect(_on_challenge_requested)
 
 	if equipment_system != null:
 		equipment_system.inventory_changed.connect(_on_equipment_changed)
@@ -215,6 +218,22 @@ func _on_upgrade_applied(_type: String, _level: int) -> void:
 	_update_hud_progression()
 
 func _on_progression_updated(_current_gold: int) -> void:
+	_update_hud_progression()
+
+func _on_continue_requested() -> void:
+	if stage_system != null:
+		stage_system.acknowledge_defeat_and_continue_farming()
+	if arena_placeholder != null:
+		arena_placeholder.reset_arena()
+		arena_placeholder.spawn_enemy()
+	_update_hud_progression()
+
+func _on_challenge_requested() -> void:
+	if stage_system != null:
+		stage_system.challenge_progression()
+	if arena_placeholder != null:
+		arena_placeholder.reset_arena()
+		arena_placeholder.spawn_enemy()
 	_update_hud_progression()
 
 func _on_restart_requested() -> void:

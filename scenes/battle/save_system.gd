@@ -105,6 +105,7 @@ func save_game() -> void:
 		"highest_unlocked_world": stage_system.highest_unlocked_world,
 		"completed_worlds": stage_system.completed_worlds,
 		"is_endless_mode": stage_system.is_endless_mode,
+		"is_farming_mode": stage_system.is_farming_mode,
 		"world_1_completed": stage_system.is_world_1_completed,
 		"gold": progression_system.gold,
 		"attack_level": progression_system.attack_level,
@@ -152,15 +153,20 @@ func apply_save_data(data: Dictionary) -> float:
 	var saved_time: float = float(data.get("timestamp", 0.0))
 
 	if stage_system != null:
-		var loaded_world: int = int(data.get("world", 1))
+		var loaded_world: int = clampi(int(data.get("world", 1)), 1, 5)
 		var loaded_stage: int = int(data.get("stage", 1))
-		stage_system.highest_unlocked_world = int(data.get("highest_unlocked_world", loaded_world))
+		var max_stg: int = WorldRegistry.get_max_stages(loaded_world)
+		loaded_stage = clampi(loaded_stage, 1, max_stg)
+		stage_system.highest_unlocked_world = clampi(int(data.get("highest_unlocked_world", loaded_world)), 1, 5)
 		stage_system.is_endless_mode = bool(data.get("is_endless_mode", false))
+		stage_system.is_farming_mode = bool(data.get("is_farming_mode", false))
 		
 		var comp_w_arr: Array = data.get("completed_worlds", [])
 		stage_system.completed_worlds.clear()
 		for w in comp_w_arr:
-			stage_system.completed_worlds.append(int(w))
+			var w_i: int = int(w)
+			if w_i <= 5 and not stage_system.completed_worlds.has(w_i):
+				stage_system.completed_worlds.append(w_i)
 		if bool(data.get("world_1_completed", false)) and not stage_system.completed_worlds.has(1):
 			stage_system.completed_worlds.append(1)
 		

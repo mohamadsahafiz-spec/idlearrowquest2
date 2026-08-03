@@ -9,6 +9,8 @@ signal boss_state_changed(active: bool, boss_name: String, current_hp: float, ma
 signal spawn_allowed_changed(allowed: bool)
 signal spawn_boss_requested()
 signal world_completed(world_id: int)
+signal farming_mode_changed(is_farming: bool)
+signal progression_interrupted(reason: String, detail: String)
 
 enum State {
 	WAVE_ACTIVE,
@@ -38,6 +40,9 @@ var state_timer: float = 0.0
 var active_boss: EnemyPlaceholder = null
 var completed_worlds: Array[int] = []
 var is_endless_mode: bool = false
+var is_farming_mode: bool = false
+var is_progression_interrupted: bool = false
+var interrupt_reason: String = ""
 
 var is_world_1_completed: bool:
 	get:
@@ -70,6 +75,13 @@ func start_stage(stage_num: int, world_id: int = -1) -> void:
 	defeat_overlay_changed.emit(false)
 	_setup_wave(current_wave)
 
+func trigger_progression_interrupt(reason: String, detail: String = "") -> void:
+	is_progression_interrupted = true
+	interrupt_reason = reason
+	progression_interrupted.emit(reason, detail)
+	if reason == "defeat":
+		trigger_defeat()
+
 func trigger_defeat() -> void:
 	state = State.DEFEAT
 	banner_text = ""
@@ -77,6 +89,21 @@ func trigger_defeat() -> void:
 	spawn_allowed_changed.emit(false)
 	boss_state_changed.emit(false, "", 0.0, 0.0)
 	defeat_overlay_changed.emit(true)
+
+func acknowledge_defeat_and_continue_farming() -> void:
+	is_progression_interrupted = false
+	interrupt_reason = ""
+	is_farming_mode = true
+	defeat_overlay_changed.emit(false)
+	farming_mode_changed.emit(true)
+	start_stage(current_stage, current_world)
+
+func challenge_progression() -> void:
+	is_farming_mode = false
+	is_progression_interrupted = false
+	interrupt_reason = ""
+	farming_mode_changed.emit(false)
+	start_stage(current_stage, current_world)
 
 func _setup_wave(wave_num: int) -> void:
 	current_wave = wave_num
@@ -203,23 +230,28 @@ func _process(delta: float) -> void:
 			state_timer -= delta
 			if state_timer <= 0.0:
 				victory_overlay_changed.emit(false, current_stage)
-				var max_stg: int = WorldRegistry.get_max_stages(current_world)
-				if is_endless_mode:
-					start_stage(current_stage + 1)
-				elif current_stage < max_stg:
-					start_stage(current_stage + 1)
+				if is_farming_mode:
+					start_stage(current_stage, current_world)
+				elif is_progression_interrupted:
+					pass
 				else:
-					if WorldRegistry.is_last_world(current_world):
-						is_endless_mode = true
-						banner_text = "ENDLESS MODE UNLOCKED!"
-						banner_text_changed.emit(banner_text)
-						start_stage(current_stage + 1)
+					var max_stg: int = WorldRegistry.get_max_stages(current_world)
+					if is_endless_mode:
+						start_stage(current_stage + 1, current_world)
+					elif current_stage < max_stg:
+						start_stage(current_stage + 1, current_world)
 					else:
-						var next_w: int = WorldRegistry.get_next_world_id(current_world)
-						current_world = next_w
-						if next_w > highest_unlocked_world:
-							highest_unlocked_world = next_w
-						banner_text = WorldRegistry.get_world_name(current_world) + " UNLOCKED!"
-						banner_text_changed.emit(banner_text)
-						start_stage(1, current_world)
+						if WorldRegistry.is_last_world(current_world):
+							is_endless_mode = true
+							banner_text = "ENDLESS MODE UNLOCKED!"
+							banner_text_changed.emit(banner_text)
+							start_stage(current_stage + 1, current_world)
+						else:
+							var next_w: int = WorldRegistry.get_next_world_id(current_world)
+							current_world = next_w
+							if next_w > highest_unlocked_world:
+								highest_unlocked_world = next_w
+							banner_text = WorldRegistry.get_world_name(current_world) + " UNLOCKED!"
+							banner_text_changed.emit(banner_text)
+							start_stage(1, current_world)
 
