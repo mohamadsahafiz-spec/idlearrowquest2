@@ -1,6 +1,28 @@
 # Changelog
 
-## [0.7.7] - Unreleased
+## [0.9.0] - 2026-08-03
+
+### Added
+- **Canonical Elemental Skill Foundation**: 4 canonical elements (Fire, Water, Earth, Wind) with 12 canonical skills.
+- **Commander Skill Loadout**: 3–6 progression-unlocked skill slots equipped manually by player.
+- **AoE, Cooldown & Skill Level Architecture**: All active skills are AoE with configurable radius, cooldown, base power, element, and rarity.
+- **Duplicate Progression & Elemental Counters**: Duplicate skill items increase skill level, power, and AoE radius while reducing cooldown without interrupting combat.
+- **Skill System Persistence & Hotfix**: Integrated skill state save/load compatibility and fixed runtime enemy spawn integration.
+
+## [0.8.0] - 2026-08-03
+
+### Added
+- **Canonical World Progression Foundation**: Replaced obsolete 6-World progression with 5 baseline Worlds.
+- **Progressive World Scaling**: Progressive difficulty and reward scaling with automatic World progression.
+- **Farming & Challenge Loop**: Progression defeat transitions to Continue -> Farming -> Challenge loop with progression interrupt foundation.
+
+## [0.7.8] - 2026-08-03
+
+### Added
+- **Combat Foundation Stabilization**: Per-Maid equipment persistence and multi-Maid enemy retargeting.
+- **Combat State & Formation Fixes**: Individual combat state/stat stabilization and formation/equipment integration fixes.
+
+## [0.7.7] - 2026-08-03
 
 ### Added
 - **Individual Maid Combat Foundation**: Each active Maid owns an independent runtime combat profile (HP, Attack, Speed, Critical) while preserving Liria's player progression.
