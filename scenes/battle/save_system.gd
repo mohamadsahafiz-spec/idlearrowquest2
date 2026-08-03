@@ -116,6 +116,7 @@ func save_game() -> void:
 		"auto_skills": auto_skills,
 		"inventory": inv_arr,
 		"equipped": eq_dict,
+		"maid_equipped": equipment_system.maid_equipped_to_dict() if equipment_system.has_method("maid_equipped_to_dict") else {},
 		"maid_system": maid_system.to_dict() if maid_system != null else {}
 	}
 
@@ -205,6 +206,9 @@ func apply_save_data(data: Dictionary) -> float:
 				equipment_system.equipped[slot_int] = EquipmentItem.from_dict(item_d)
 			else:
 				equipment_system.equipped[slot_int] = null
+
+		if data.has("maid_equipped") and equipment_system.has_method("maid_equipped_from_dict"):
+			equipment_system.maid_equipped_from_dict(data.get("maid_equipped", {}))
 
 		equipment_system.inventory_changed.emit()
 		if auto_equip_enabled:

@@ -13,6 +13,44 @@ var equipped: Dictionary = {
 	EquipmentItem.Slot.BOOTS: null
 }
 
+func maid_equipped_to_dict() -> Dictionary:
+	var res: Dictionary = {}
+	var m001_dict: Dictionary = {}
+	for slot: int in equipped:
+		var item: EquipmentItem = equipped[slot] as EquipmentItem
+		m001_dict[str(slot)] = item.to_dict() if item != null else {}
+	res["001"] = m001_dict
+
+	for m_id: String in maid_equipped:
+		if m_id == "001":
+			continue
+		var eq: Dictionary = maid_equipped[m_id] as Dictionary
+		var m_dict: Dictionary = {}
+		for slot: int in eq:
+			var item: EquipmentItem = eq[slot] as EquipmentItem
+			m_dict[str(slot)] = item.to_dict() if item != null else {}
+		res[m_id] = m_dict
+	return res
+
+func maid_equipped_from_dict(data: Dictionary) -> void:
+	for m_id: String in data:
+		var m_dict: Dictionary = data.get(m_id, {}) as Dictionary
+		var eq_dict: Dictionary = {
+			EquipmentItem.Slot.WEAPON: null,
+			EquipmentItem.Slot.ARMOR: null,
+			EquipmentItem.Slot.RING: null,
+			EquipmentItem.Slot.BOOTS: null
+		}
+		for slot_str: String in m_dict:
+			var slot_int: int = int(slot_str)
+			var item_d: Dictionary = m_dict.get(slot_str, {})
+			if item_d is Dictionary and not item_d.is_empty():
+				eq_dict[slot_int] = EquipmentItem.from_dict(item_d)
+		if m_id == "001":
+			equipped = eq_dict
+		else:
+			maid_equipped[m_id] = eq_dict
+
 # Per-maid equipped dictionary: maid_id (String) -> Dictionary of Slot (int) -> EquipmentItem
 var maid_equipped: Dictionary = {}
 

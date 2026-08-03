@@ -89,11 +89,11 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 func take_damage_from_maid(amount: float, is_critical: bool = false, source_maid: DefenderPlaceholder = null) -> void:
 	if is_dead:
 		return
-	if is_instance_valid(source_maid):
+	if is_instance_valid(source_maid) and not source_maid.is_queued_for_deletion():
 		source_maid.record_damage(amount, is_critical)
 	var was_alive: bool = not is_dead
 	take_damage(amount, is_critical)
-	if was_alive and is_dead and is_instance_valid(source_maid):
+	if was_alive and is_dead and is_instance_valid(source_maid) and not source_maid.is_queued_for_deletion():
 		source_maid.record_kill()
 
 func _die() -> void:
