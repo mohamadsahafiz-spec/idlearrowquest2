@@ -108,6 +108,7 @@ func is_overdrive_active() -> bool: return false
 func is_meteor_ready() -> bool: return is_slot_ready(5)
 func is_freeze_ready() -> bool: return false
 func is_overdrive_ready() -> bool: return false
+func on_enemy_spawned(_enemy: EnemyPlaceholder = null) -> void: pass
 
 static func get_elemental_multiplier(skill_elem: String, target_elem: String) -> float:
 	if skill_elem == target_elem or target_elem == "neutral" or target_elem.is_empty():

@@ -280,7 +280,7 @@ func _spawn_enemy_with_tier(tier: EnemyStats.Tier) -> void:
 		var points: PackedVector2Array = enemy_path.get_points()
 		enemy_instance.start_path(points)
 
-		if skill_system != null:
+		if skill_system != null and skill_system.has_method("on_enemy_spawned"):
 			skill_system.on_enemy_spawned(enemy_instance)
 
 		if tier == EnemyStats.Tier.BOSS and stage_system != null:
