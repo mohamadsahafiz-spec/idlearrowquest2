@@ -6,7 +6,8 @@ const WORLDS: Array[Dictionary] = [
 	{"id": 2, "name": "Enchanted Forest", "max_stages": 100},
 	{"id": 3, "name": "Frozen Kingdom", "max_stages": 200},
 	{"id": 4, "name": "Gothic Realm", "max_stages": 350},
-	{"id": 5, "name": "Infernal Realm", "max_stages": 500}
+	{"id": 5, "name": "Infernal Realm", "max_stages": 500},
+	{"id": 6, "name": "Celestial Realm", "max_stages": 750}
 ]
 
 static func get_world_info(world_id: int) -> Dictionary:

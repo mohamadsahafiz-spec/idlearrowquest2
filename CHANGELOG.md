@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.2] - 2026-08-03
+
+### Added
+- **Restored Canonical 6-World / 6-Maid Roster**: Expanded active World registry to 6 Worlds (Royal Kingdom, Enchanted Forest, Frozen Kingdom, Gothic Realm, Infernal Realm, Celestial Realm) and restored 6-Maid progression.
+- **World Completion Maid Unlocks**: Clearing Worlds 1–5 sequentially unlocks Maids #002 through #006 with progression interrupt overlays.
+- **World 6 Scaling & Dynamic Stages**: Extended difficulty scaling and stage thresholds seamlessly into World 6 (~750 max stages).
+- **Save File World Migration**: Updated save system and developer panel clamps to support 6 Worlds while preserving player progress.
+
 ## [0.9.1] - 2026-08-03
 
 ### Added

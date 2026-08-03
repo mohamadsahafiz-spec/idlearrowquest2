@@ -155,11 +155,12 @@ func apply_save_data(data: Dictionary) -> float:
 	var saved_time: float = float(data.get("timestamp", 0.0))
 
 	if stage_system != null:
-		var loaded_world: int = clampi(int(data.get("world", 1)), 1, 5)
+		var max_world_count: int = WorldRegistry.WORLDS.size()
+		var loaded_world: int = clampi(int(data.get("world", 1)), 1, max_world_count)
 		var loaded_stage: int = int(data.get("stage", 1))
 		var max_stg: int = WorldRegistry.get_max_stages(loaded_world)
 		loaded_stage = clampi(loaded_stage, 1, max_stg)
-		stage_system.highest_unlocked_world = clampi(int(data.get("highest_unlocked_world", loaded_world)), 1, 5)
+		stage_system.highest_unlocked_world = clampi(int(data.get("highest_unlocked_world", loaded_world)), 1, max_world_count)
 		stage_system.is_endless_mode = bool(data.get("is_endless_mode", false))
 		stage_system.is_farming_mode = bool(data.get("is_farming_mode", false))
 		
@@ -167,7 +168,7 @@ func apply_save_data(data: Dictionary) -> float:
 		stage_system.completed_worlds.clear()
 		for w in comp_w_arr:
 			var w_i: int = int(w)
-			if w_i <= 5 and not stage_system.completed_worlds.has(w_i):
+			if w_i <= max_world_count and not stage_system.completed_worlds.has(w_i):
 				stage_system.completed_worlds.append(w_i)
 		if bool(data.get("world_1_completed", false)) and not stage_system.completed_worlds.has(1):
 			stage_system.completed_worlds.append(1)
