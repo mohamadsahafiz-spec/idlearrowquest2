@@ -26,6 +26,10 @@ func _init_default_roster() -> void:
 			}
 	party_slots = ["001", "", "", "", "", ""]
 
+func reset_maids() -> void:
+	_init_default_roster()
+	party_changed.emit(get_party())
+
 func is_unlocked(maid_id: String) -> bool:
 	return unlocked_maids.has(maid_id)
 

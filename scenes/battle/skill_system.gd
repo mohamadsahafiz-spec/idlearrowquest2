@@ -320,8 +320,22 @@ func _apply_effect_damage(fx: Dictionary) -> void:
 					child.take_damage(final_dmg, is_crit)
 
 func reset_skills() -> void:
-	for i in range(MAX_SLOTS):
-		slot_cooldowns[i] = 0.0
+	unlocked_skills = {
+		"fireball": {"level": 1, "duplicates": 0},
+		"water_arrows": {"level": 1, "duplicates": 0},
+		"stone_spikes": {"level": 1, "duplicates": 0}
+	}
+	equipped_slots = [
+		"fireball",
+		"water_arrows",
+		"stone_spikes",
+		"",
+		"",
+		""
+	]
+	slot_cooldowns = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	slot_autos = [false, false, false, false, false, false]
+	global_auto_skills = true
 	active_effects.clear()
 	skill_state_changed.emit()
 

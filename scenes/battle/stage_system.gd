@@ -60,6 +60,18 @@ func get_slot_count_for_world(w_id: int) -> int:
 	elif w_id == 3: return 5
 	else: return 6
 
+func reset_stage_system() -> void:
+	completed_worlds.clear()
+	highest_unlocked_world = 1
+	is_endless_mode = false
+	is_farming_mode = false
+	is_progression_interrupted = false
+	interrupt_reason = ""
+	interrupt_detail = ""
+	interrupt_queue.clear()
+	highest_slot_acknowledged = 3
+	start_stage(1, 1)
+
 func _ready() -> void:
 	start_stage(current_stage, current_world)
 

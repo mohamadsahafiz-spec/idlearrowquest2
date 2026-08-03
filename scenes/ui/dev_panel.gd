@@ -315,10 +315,8 @@ func _gui_input(event: InputEvent) -> void:
 		var r_test: Rect2 = Rect2(40, 565, 215, 42)
 		if r_test.has_point(pos):
 			_trigger_press_feedback(r_test)
-			if arena_placeholder != null:
-				arena_placeholder.reset_arena()
-			if stage_system != null:
-				stage_system.start_stage(1, 1)
+			if battle != null:
+				battle.reset_to_fresh_state()
 			accept_event()
 			queue_redraw()
 			return

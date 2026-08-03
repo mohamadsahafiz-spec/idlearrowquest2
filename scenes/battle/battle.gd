@@ -285,21 +285,7 @@ func _on_challenge_requested() -> void:
 	_update_hud_progression()
 
 func _on_restart_requested() -> void:
-	if skill_system != null:
-		skill_system.reset_skills()
-	if equipment_system != null:
-		equipment_system.reset_equipment()
-	if progression_system != null:
-		progression_system.reset_progression()
-	if arena_placeholder != null:
-		arena_placeholder.reset_arena()
-		if progression_system != null and arena_placeholder.defender != null:
-			progression_system.apply_to_defender(arena_placeholder.defender, equipment_system)
-	if stage_system != null:
-		stage_system.start_stage(1)
-	if arena_placeholder != null:
-		arena_placeholder.spawn_enemy()
-	_update_hud_progression()
+	reset_to_fresh_state()
 
 func _on_dev_toggled() -> void:
 	if dev_panel != null:
@@ -309,7 +295,7 @@ func _on_dev_toggled() -> void:
 
 func reset_to_fresh_state() -> void:
 	if stage_system != null:
-		stage_system.start_stage(1, 1)
+		stage_system.reset_stage_system()
 	if progression_system != null:
 		progression_system.attack_level = 1
 		progression_system.speed_level = 1
@@ -322,11 +308,14 @@ func reset_to_fresh_state() -> void:
 		equipment_system.inventory.clear()
 		equipment_system.equipped.clear()
 		equipment_system.inventory_changed.emit()
+	if skill_system != null:
+		skill_system.reset_skills()
 	if maid_system != null:
-		maid_system.party_slots = ["001", "", "", "", "", ""]
-		maid_system.party_changed.emit(maid_system.get_party())
+		maid_system.reset_maids()
 	if arena_placeholder != null:
 		arena_placeholder.reset_arena()
+		arena_placeholder.spawn_enemy()
+	_update_hud_progression()
 
 func _update_hud_progression() -> void:
 	if hud_placeholder != null and progression_system != null:
