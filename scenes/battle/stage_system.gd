@@ -44,6 +44,7 @@ var is_farming_mode: bool = false
 var is_progression_interrupted: bool = false
 var interrupt_reason: String = ""
 var interrupt_detail: String = ""
+var interrupt_queue: Array[Dictionary] = []
 var highest_slot_acknowledged: int = 3
 
 var is_world_1_completed: bool:
@@ -90,18 +91,34 @@ func start_stage(stage_num: int, world_id: int = -1) -> void:
 	_setup_wave(current_wave)
 
 func trigger_progression_interrupt(reason: String, detail: String = "") -> void:
-	is_progression_interrupted = true
-	interrupt_reason = reason
-	interrupt_detail = detail
-	progression_interrupted.emit(reason, detail)
+	interrupt_queue.append({"reason": reason, "detail": detail})
+	if not is_progression_interrupted:
+		_show_next_interrupt()
 	if reason == "defeat":
 		trigger_defeat()
 
+func _show_next_interrupt() -> void:
+	if interrupt_queue.is_empty():
+		is_progression_interrupted = false
+		interrupt_reason = ""
+		interrupt_detail = ""
+		return
+	var item: Dictionary = interrupt_queue[0]
+	is_progression_interrupted = true
+	interrupt_reason = str(item.get("reason", ""))
+	interrupt_detail = str(item.get("detail", ""))
+	progression_interrupted.emit(interrupt_reason, interrupt_detail)
+
 func acknowledge_interrupt() -> void:
-	is_progression_interrupted = false
 	var prev_reason: String = interrupt_reason
-	interrupt_reason = ""
-	interrupt_detail = ""
+	if not interrupt_queue.is_empty():
+		interrupt_queue.pop_front()
+	if not interrupt_queue.is_empty():
+		_show_next_interrupt()
+	else:
+		is_progression_interrupted = false
+		interrupt_reason = ""
+		interrupt_detail = ""
 	if prev_reason == "defeat":
 		acknowledge_defeat_and_continue_farming()
 

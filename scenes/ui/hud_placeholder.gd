@@ -618,10 +618,12 @@ func _draw_interrupt_overlay() -> void:
 	_draw_rounded_rect_stroke(modal_rect, 12.0, Color(0.3, 0.75, 1.0, 1.0), 2.5)
 
 	var title_text: String = "PROGRESSION UNLOCK"
+	var desc_text: String = "Action required: Review your new loadout."
 	if stage_system.interrupt_reason == "slot_unlocked":
 		title_text = "SKILL SLOT UNLOCKED"
 	elif stage_system.interrupt_reason == "maid_unlocked":
-		title_text = "MAID UNLOCKED"
+		title_text = "NEW BATTLE MAID UNLOCKED"
+		desc_text = "Manage your squad in Maid System to deploy her."
 
 	draw_string(font, Vector2(270, 325), title_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 22, Color(1.0, 0.88, 0.2, 1.0))
 
@@ -630,7 +632,6 @@ func _draw_interrupt_overlay() -> void:
 		detail_text = "New progression feature unlocked!"
 	draw_string(font, Vector2(270, 370), detail_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 15, Color(0.9, 0.95, 1.0, 0.95))
 
-	var desc_text: String = "Action required: Review your new loadout."
 	draw_string(font, Vector2(270, 405), desc_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(0.7, 0.8, 0.9, 0.8))
 
 	# Confirm / Resume button

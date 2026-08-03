@@ -216,8 +216,15 @@ func _on_world_completed(world_id: int) -> void:
 func _on_maid_unlocked(maid_id: String) -> void:
 	var m_data: Dictionary = MaidRegistry.get_maid_info(maid_id)
 	var name_str: String = str(m_data.get("name", maid_id))
+	var title_str: String = str(m_data.get("title", ""))
+	var detail_str: String = "New Battle Maid Unlocked: " + name_str
+	if not title_str.is_empty():
+		detail_str += " (" + title_str + ")"
+	detail_str += "!"
 	if stage_system != null:
-		stage_system.trigger_progression_interrupt("maid_unlocked", "New Battle Maid Unlocked: " + name_str + "!")
+		stage_system.trigger_progression_interrupt("maid_unlocked", detail_str)
+	if save_system != null:
+		save_system.save_game()
 
 func _on_progression_interrupted(_reason: String, _detail: String) -> void:
 	if hud_placeholder != null:

@@ -8,6 +8,10 @@
 - **World 6 Scaling & Dynamic Stages**: Extended difficulty scaling and stage thresholds seamlessly into World 6 (~750 max stages).
 - **Save File World Migration**: Updated save system and developer panel clamps to support 6 Worlds while preserving player progress.
 
+### Fixed
+- **Progression Interrupt Queue**: Queued Maid unlock and Skill Slot unlock interrupts sequentially to prevent interrupts from overwriting or suppressing Maid unlock notices.
+- **Maid Unlock Flow**: Prompted "NEW BATTLE MAID UNLOCKED" interruption upon clearing Worlds 1–5 without auto-deploying the new Maid, requiring player acknowledgement before resuming progression.
+
 ## [0.9.1] - 2026-08-03
 
 ### Added
