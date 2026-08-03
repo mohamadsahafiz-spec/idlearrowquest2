@@ -4,22 +4,79 @@ extends Node2D
 signal skill_state_changed()
 signal meteor_impact()
 
-const METEOR_CD: float = 30.0
-const FREEZE_CD: float = 25.0
-const FREEZE_DURATION: float = 5.0
-const OVERDRIVE_CD: float = 30.0
-const OVERDRIVE_DURATION: float = 8.0
+const SKILL_CATALOG: Dictionary = {
+	"fireball": {
+		"id": "fireball", "name": "Fireball", "element": "fire", "rarity": "common",
+		"base_power": 80.0, "base_radius": 35.0, "base_cd": 8.0, "description": "Single fiery blast."
+	},
+	"firewall": {
+		"id": "firewall", "name": "Firewall", "element": "fire", "rarity": "uncommon",
+		"base_power": 120.0, "base_radius": 45.0, "base_cd": 12.0, "description": "Blazing flame barrier."
+	},
+	"meteor": {
+		"id": "meteor", "name": "Meteor", "element": "fire", "rarity": "mythic",
+		"base_power": 350.0, "base_radius": 75.0, "base_cd": 25.0, "description": "Cataclysmic meteor drop."
+	},
+	"water_arrows": {
+		"id": "water_arrows", "name": "Water Arrows", "element": "water", "rarity": "common",
+		"base_power": 75.0, "base_radius": 30.0, "base_cd": 6.0, "description": "Rapid water projectiles."
+	},
+	"tidal_wave": {
+		"id": "tidal_wave", "name": "Tidal Wave", "element": "water", "rarity": "epic",
+		"base_power": 220.0, "base_radius": 60.0, "base_cd": 18.0, "description": "Crushing wave surge."
+	},
+	"whirlpool": {
+		"id": "whirlpool", "name": "Whirlpool", "element": "water", "rarity": "legendary",
+		"base_power": 280.0, "base_radius": 65.0, "base_cd": 20.0, "description": "Swirling vortex."
+	},
+	"stone_spikes": {
+		"id": "stone_spikes", "name": "Stone Spikes", "element": "earth", "rarity": "common",
+		"base_power": 90.0, "base_radius": 32.0, "base_cd": 7.0, "description": "Sharp earthen spikes."
+	},
+	"boulder_crash": {
+		"id": "boulder_crash", "name": "Boulder Crash", "element": "earth", "rarity": "rare",
+		"base_power": 160.0, "base_radius": 50.0, "base_cd": 14.0, "description": "Giant falling rock."
+	},
+	"earthquake": {
+		"id": "earthquake", "name": "Earthquake", "element": "earth", "rarity": "mythic",
+		"base_power": 380.0, "base_radius": 85.0, "base_cd": 30.0, "description": "Violent ground quake."
+	},
+	"wind_blades": {
+		"id": "wind_blades", "name": "Wind Blades", "element": "wind", "rarity": "uncommon",
+		"base_power": 110.0, "base_radius": 40.0, "base_cd": 9.0, "description": "Razor gale slices."
+	},
+	"cyclone_burst": {
+		"id": "cyclone_burst", "name": "Cyclone Burst", "element": "wind", "rarity": "epic",
+		"base_power": 210.0, "base_radius": 55.0, "base_cd": 16.0, "description": "Explosive gust burst."
+	},
+	"tornado": {
+		"id": "tornado", "name": "Tornado", "element": "wind", "rarity": "legendary",
+		"base_power": 300.0, "base_radius": 70.0, "base_cd": 22.0, "description": "Raging twister."
+	}
+}
 
-var meteor_cooldown: float = 0.0
-var meteor_auto: bool = false
+const MAX_SLOTS: int = 6
 
-var freeze_cooldown: float = 0.0
-var freeze_active_timer: float = 0.0
-var freeze_auto: bool = false
+var unlocked_skills: Dictionary = {
+	"fireball": {"level": 1, "duplicates": 0},
+	"water_arrows": {"level": 1, "duplicates": 0},
+	"stone_spikes": {"level": 1, "duplicates": 0},
+	"wind_blades": {"level": 1, "duplicates": 0},
+	"firewall": {"level": 1, "duplicates": 0},
+	"meteor": {"level": 1, "duplicates": 0}
+}
 
-var overdrive_cooldown: float = 0.0
-var overdrive_active_timer: float = 0.0
-var overdrive_auto: bool = false
+var equipped_slots: Array[String] = [
+	"fireball",
+	"water_arrows",
+	"stone_spikes",
+	"wind_blades",
+	"firewall",
+	"meteor"
+]
+
+var slot_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+var slot_autos: Array[bool] = [false, false, false, false, false, false]
 
 var defender: DefenderPlaceholder = null
 var enemies_container: Node2D = null
@@ -27,55 +84,130 @@ var stage_system: StageSystem = null
 var progression_system: ProgressionSystem = null
 var equipment_system: EquipmentSystem = null
 
-var active_meteors: Array[Dictionary] = []
+var active_effects: Array[Dictionary] = []
 
-func is_freeze_active() -> bool:
-	return freeze_active_timer > 0.0
+# Legacy stubs / properties
+var meteor_cooldown: float:
+	get: return slot_cooldowns[5] if slot_cooldowns.size() > 5 else 0.0
+	set(val):
+		if slot_cooldowns.size() > 5: slot_cooldowns[5] = val
+var meteor_auto: bool:
+	get: return slot_autos[5] if slot_autos.size() > 5 else false
+	set(val):
+		if slot_autos.size() > 5: slot_autos[5] = val
 
-func is_overdrive_active() -> bool:
-	return overdrive_active_timer > 0.0
+var freeze_cooldown: float = 0.0
+var freeze_active_timer: float = 0.0
+var freeze_auto: bool = false
+var overdrive_cooldown: float = 0.0
+var overdrive_active_timer: float = 0.0
+var overdrive_auto: bool = false
 
-func is_meteor_ready() -> bool:
-	return meteor_cooldown <= 0.0
+func is_freeze_active() -> bool: return false
+func is_overdrive_active() -> bool: return false
+func is_meteor_ready() -> bool: return is_slot_ready(5)
+func is_freeze_ready() -> bool: return false
+func is_overdrive_ready() -> bool: return false
 
-func is_freeze_ready() -> bool:
-	return freeze_cooldown <= 0.0 and freeze_active_timer <= 0.0
+static func get_elemental_multiplier(skill_elem: String, target_elem: String) -> float:
+	if skill_elem == target_elem or target_elem == "neutral" or target_elem.is_empty():
+		return 1.0
+	match skill_elem:
+		"fire":
+			if target_elem == "wind": return 1.5
+			if target_elem == "water": return 0.6
+		"water":
+			if target_elem == "fire": return 1.5
+			if target_elem == "earth": return 0.6
+		"earth":
+			if target_elem == "water": return 1.5
+			if target_elem == "wind": return 0.6
+		"wind":
+			if target_elem == "earth": return 1.5
+			if target_elem == "fire": return 0.6
+	return 1.0
 
-func is_overdrive_ready() -> bool:
-	return overdrive_cooldown <= 0.0 and overdrive_active_timer <= 0.0
+func get_unlocked_slot_count() -> int:
+	var w: int = stage_system.current_world if stage_system != null else 1
+	if w <= 1: return 3
+	elif w == 2: return 4
+	elif w == 3: return 5
+	else: return 6
 
-func toggle_auto(skill_name: String) -> void:
-	match skill_name:
-		"meteor":
-			meteor_auto = not meteor_auto
-		"freeze":
-			freeze_auto = not freeze_auto
-		"overdrive":
-			overdrive_auto = not overdrive_auto
+func get_skill_effective_stats(skill_id: String) -> Dictionary:
+	var def: Dictionary = SKILL_CATALOG.get(skill_id, {})
+	if def.is_empty(): return {}
+	var unl: Dictionary = unlocked_skills.get(skill_id, {"level": 1, "duplicates": 0})
+	var lvl: int = int(unl.get("level", 1))
+	var pow_mult: float = 1.0 + (lvl - 1) * 0.15
+	var rad_mult: float = 1.0 + (lvl - 1) * 0.05
+	var cd_mult: float = maxf(0.4, 1.0 - (lvl - 1) * 0.03)
+	return {
+		"id": skill_id,
+		"name": def.get("name", ""),
+		"element": def.get("element", "fire"),
+		"rarity": def.get("rarity", "common"),
+		"level": lvl,
+		"duplicates": int(unl.get("duplicates", 0)),
+		"power": float(def.get("base_power", 100.0)) * pow_mult,
+		"radius": float(def.get("base_radius", 40.0)) * rad_mult,
+		"cooldown": maxf(1.5, float(def.get("base_cd", 10.0)) * cd_mult)
+	}
+
+func add_skill_or_duplicate(skill_id: String) -> void:
+	if not SKILL_CATALOG.has(skill_id): return
+	if unlocked_skills.has(skill_id):
+		var d: Dictionary = unlocked_skills[skill_id]
+		var dups: int = int(d.get("duplicates", 0)) + 1
+		d["duplicates"] = dups
+		d["level"] = 1 + int(dups / 2)
+	else:
+		unlocked_skills[skill_id] = {"level": 1, "duplicates": 0}
 	skill_state_changed.emit()
 
+func equip_skill_to_slot(slot_idx: int, skill_id: String) -> bool:
+	if slot_idx < 0 or slot_idx >= MAX_SLOTS: return false
+	if not skill_id.is_empty() and not unlocked_skills.has(skill_id): return false
+	equipped_slots[slot_idx] = skill_id
+	skill_state_changed.emit()
+	return true
+
+func is_slot_ready(slot_idx: int) -> bool:
+	if slot_idx < 0 or slot_idx >= get_unlocked_slot_count(): return false
+	var sk_id: String = equipped_slots[slot_idx]
+	if sk_id.is_empty(): return false
+	return slot_cooldowns[slot_idx] <= 0.0
+
+func toggle_slot_auto(slot_idx: int) -> void:
+	if slot_idx >= 0 and slot_idx < MAX_SLOTS:
+		slot_autos[slot_idx] = not slot_autos[slot_idx]
+		skill_state_changed.emit()
+
+func toggle_auto(skill_name: String) -> void:
+	if skill_name == "meteor":
+		toggle_slot_auto(5)
+	else:
+		for i in range(MAX_SLOTS):
+			if equipped_slots[i] == skill_name:
+				toggle_slot_auto(i)
+
+func trigger_slot(slot_idx: int) -> bool:
+	if not is_slot_ready(slot_idx): return false
+	var sk_id: String = equipped_slots[slot_idx]
+	var eff: Dictionary = get_skill_effective_stats(sk_id)
+	if eff.is_empty(): return false
+
+	slot_cooldowns[slot_idx] = float(eff.get("cooldown", 10.0))
+	_execute_skill(sk_id, eff)
+	skill_state_changed.emit()
+	return true
+
 func trigger_skill(skill_name: String) -> bool:
-	match skill_name:
-		"meteor":
-			if is_meteor_ready():
-				_execute_meteor()
-				meteor_cooldown = METEOR_CD
-				skill_state_changed.emit()
-				return true
-		"freeze":
-			if is_freeze_ready():
-				_execute_freeze()
-				freeze_cooldown = FREEZE_CD
-				freeze_active_timer = FREEZE_DURATION
-				skill_state_changed.emit()
-				return true
-		"overdrive":
-			if is_overdrive_ready():
-				_execute_overdrive()
-				overdrive_cooldown = OVERDRIVE_CD
-				overdrive_active_timer = OVERDRIVE_DURATION
-				skill_state_changed.emit()
-				return true
+	if skill_name == "meteor":
+		return trigger_slot(5)
+	for i in range(get_unlocked_slot_count()):
+		if equipped_slots[i] == skill_name and is_slot_ready(i):
+			return trigger_slot(i)
 	return false
 
 func can_auto_trigger() -> bool:
@@ -88,188 +220,143 @@ func can_auto_trigger() -> bool:
 
 func _process(delta: float) -> void:
 	var state_changed: bool = false
+	var active_slots: int = get_unlocked_slot_count()
 
-	# Timers update
-	if meteor_cooldown > 0.0:
-		meteor_cooldown = maxf(0.0, meteor_cooldown - delta)
-		state_changed = true
+	for i in range(active_slots):
+		if slot_cooldowns[i] > 0.0:
+			slot_cooldowns[i] = maxf(0.0, slot_cooldowns[i] - delta)
+			state_changed = true
 
-	if freeze_cooldown > 0.0:
-		freeze_cooldown = maxf(0.0, freeze_cooldown - delta)
-		state_changed = true
+	_update_active_effects(delta)
 
-	if freeze_active_timer > 0.0:
-		freeze_active_timer -= delta
-		state_changed = true
-		if freeze_active_timer <= 0.0:
-			freeze_active_timer = 0.0
-			_unfreeze_all_enemies()
-
-	if overdrive_cooldown > 0.0:
-		overdrive_cooldown = maxf(0.0, overdrive_cooldown - delta)
-		state_changed = true
-
-	if overdrive_active_timer > 0.0:
-		overdrive_active_timer -= delta
-		state_changed = true
-		if overdrive_active_timer <= 0.0:
-			overdrive_active_timer = 0.0
-			_update_defender_speed()
-
-	# Process meteor animations
-	_update_meteors(delta)
-
-	# Auto trigger logic
-	if can_auto_trigger():
-		if meteor_auto and is_meteor_ready() and _has_active_enemies():
-			trigger_skill("meteor")
-		if freeze_auto and is_freeze_ready() and _has_active_enemies():
-			trigger_skill("freeze")
-		if overdrive_auto and is_overdrive_ready() and _has_active_enemies():
-			trigger_skill("overdrive")
+	if can_auto_trigger() and _has_active_enemies():
+		for i in range(active_slots):
+			if slot_autos[i] and is_slot_ready(i):
+				trigger_slot(i)
 
 	if state_changed:
 		skill_state_changed.emit()
 
-func _update_meteors(delta: float) -> void:
-	var i: int = active_meteors.size() - 1
-	while i >= 0:
-		var m: Dictionary = active_meteors[i]
-		var t: float = float(m["time"]) + delta
-		m["time"] = t
-
-		# Trigger damage on impact moment (t = 0.2s)
-		if not bool(m["impact_done"]) and t >= 0.2:
-			m["impact_done"] = true
-			_apply_meteor_damage()
-
-		if t >= float(m["duration"]):
-			active_meteors.remove_at(i)
-		i -= 1
-
-	if not active_meteors.is_empty():
-		queue_redraw()
-
 func _has_active_enemies() -> bool:
-	if enemies_container == null:
-		return false
-	for child: Node in enemies_container.get_children():
-		if child is EnemyPlaceholder:
-			var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-			if enemy != null and is_instance_valid(enemy) and not enemy.is_dead:
-				return true
+	if enemies_container == null: return false
+	for child in enemies_container.get_children():
+		if child is EnemyPlaceholder and is_instance_valid(child) and not child.is_dead:
+			return true
 	return false
 
-func _execute_meteor() -> void:
-	meteor_impact.emit()
-	var m_effect: Dictionary = {
+func _find_target_center() -> Vector2:
+	if enemies_container == null: return Vector2(270, 260)
+	var total_pos: Vector2 = Vector2.ZERO
+	var count: int = 0
+	for child in enemies_container.get_children():
+		if child is EnemyPlaceholder and is_instance_valid(child) and not child.is_dead:
+			total_pos += child.position
+			count += 1
+	return (total_pos / float(count)) if count > 0 else Vector2(270, 260)
+
+func _execute_skill(skill_id: String, eff: Dictionary) -> void:
+	var target_pos: Vector2 = _find_target_center()
+	var elem: String = eff.get("element", "fire")
+	var rad: float = float(eff.get("radius", 40.0))
+
+	if skill_id == "meteor":
+		meteor_impact.emit()
+
+	var fx: Dictionary = {
+		"id": skill_id,
+		"element": elem,
 		"time": 0.0,
-		"duration": 0.65,
+		"duration": 0.5,
+		"target_pos": target_pos,
+		"radius": rad,
 		"impact_done": false,
-		"start_pos": Vector2(460, -40),
-		"target_pos": Vector2(270, 260)
+		"eff": eff
 	}
-	active_meteors.append(m_effect)
+	active_effects.append(fx)
 	queue_redraw()
 
-func _apply_meteor_damage() -> void:
-	if defender == null or not is_instance_valid(defender) or enemies_container == null:
-		return
+func _update_active_effects(delta: float) -> void:
+	var i: int = active_effects.size() - 1
+	while i >= 0:
+		var fx: Dictionary = active_effects[i]
+		var t: float = float(fx["time"]) + delta
+		fx["time"] = t
 
-	var meteor_mult: float = 5.0
-	for child: Node in enemies_container.get_children():
-		if child is EnemyPlaceholder:
-			var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-			if enemy != null and is_instance_valid(enemy) and not enemy.is_dead:
-				var hit_info: Dictionary = defender.stats.calculate_hit_damage() if defender.stats != null else {"damage": defender.damage, "is_critical": false}
-				var dmg: float = float(hit_info["damage"]) * meteor_mult
-				var is_crit: bool = bool(hit_info["is_critical"])
-				enemy.take_damage(dmg, is_crit)
+		if not bool(fx["impact_done"]) and t >= 0.15:
+			fx["impact_done"] = true
+			_apply_effect_damage(fx)
 
-func _execute_freeze() -> void:
-	if enemies_container == null:
-		return
-	for child: Node in enemies_container.get_children():
-		if child is EnemyPlaceholder:
-			var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-			if enemy != null and is_instance_valid(enemy) and not enemy.is_dead:
-				enemy.is_frozen = true
+		if t >= float(fx["duration"]):
+			active_effects.remove_at(i)
+		i -= 1
 
-func _unfreeze_all_enemies() -> void:
-	if enemies_container == null:
-		return
-	for child: Node in enemies_container.get_children():
-		if child is EnemyPlaceholder:
-			var enemy: EnemyPlaceholder = child as EnemyPlaceholder
-			if enemy != null and is_instance_valid(enemy):
-				enemy.is_frozen = false
+	if not active_effects.is_empty():
+		queue_redraw()
 
-func on_enemy_spawned(enemy: EnemyPlaceholder) -> void:
-	if enemy != null and is_freeze_active():
-		enemy.is_frozen = true
+func _apply_effect_damage(fx: Dictionary) -> void:
+	if enemies_container == null: return
+	var target_pos: Vector2 = fx["target_pos"] as Vector2
+	var rad: float = float(fx["radius"])
+	var elem: String = fx["element"] as String
+	var eff: Dictionary = fx["eff"] as Dictionary
 
-func _execute_overdrive() -> void:
-	_update_defender_speed()
+	var pow_val: float = float(eff.get("power", 100.0))
+	var maid_power: float = defender.damage if (defender != null and is_instance_valid(defender)) else 50.0
+	var base_dmg: float = maid_power * (pow_val / 100.0)
 
-func _update_defender_speed() -> void:
-	if progression_system != null and defender != null:
-		progression_system.apply_to_defender(defender, equipment_system, is_overdrive_active())
-	if defender != null and is_instance_valid(defender):
-		defender.is_overdrive_active = is_overdrive_active()
-		defender.queue_redraw()
+	for child in enemies_container.get_children():
+		if child is EnemyPlaceholder and is_instance_valid(child) and not child.is_dead:
+			if child.position.distance_to(target_pos) <= rad + child.radius:
+				var target_elem: String = child.stats.element if child.stats != null else "neutral"
+				var mult: float = get_elemental_multiplier(elem, target_elem)
+				var final_dmg: float = base_dmg * mult
+				var is_crit: bool = mult > 1.2 or randf() < 0.2
+				if defender != null and is_instance_valid(defender):
+					child.take_damage_from_maid(final_dmg, is_crit, defender)
+				else:
+					child.take_damage(final_dmg, is_crit)
 
 func reset_skills() -> void:
-	meteor_cooldown = 0.0
-	freeze_cooldown = 0.0
-	freeze_active_timer = 0.0
-	overdrive_cooldown = 0.0
-	overdrive_active_timer = 0.0
-	active_meteors.clear()
-	_unfreeze_all_enemies()
-	_update_defender_speed()
+	for i in range(MAX_SLOTS):
+		slot_cooldowns[i] = 0.0
+	active_effects.clear()
+	skill_state_changed.emit()
+
+func to_dict() -> Dictionary:
+	return {
+		"unlocked_skills": unlocked_skills,
+		"equipped_slots": equipped_slots,
+		"slot_autos": slot_autos
+	}
+
+func from_dict(data: Dictionary) -> void:
+	if data.has("unlocked_skills") and data["unlocked_skills"] is Dictionary:
+		unlocked_skills = data["unlocked_skills"].duplicate(true)
+	if data.has("equipped_slots") and data["equipped_slots"] is Array:
+		var sq: Array = data["equipped_slots"]
+		for i in range(min(sq.size(), MAX_SLOTS)):
+			equipped_slots[i] = str(sq[i])
+	if data.has("slot_autos") and data["slot_autos"] is Array:
+		var sa: Array = data["slot_autos"]
+		for i in range(min(sa.size(), MAX_SLOTS)):
+			slot_autos[i] = bool(sa[i])
 	skill_state_changed.emit()
 
 func _draw() -> void:
-	# Render meteor visual effects
-	for m: Dictionary in active_meteors:
-		var t: float = float(m["time"])
-		var start: Vector2 = m["start_pos"] as Vector2
-		var target: Vector2 = m["target_pos"] as Vector2
+	for fx: Dictionary in active_effects:
+		var t: float = float(fx["time"])
+		var dur: float = float(fx["duration"])
+		var target: Vector2 = fx["target_pos"] as Vector2
+		var rad: float = float(fx["radius"])
+		var elem: String = fx["element"] as String
+		var ratio: float = clampf(t / dur, 0.0, 1.0)
+		var alpha: float = clampf(1.0 - ratio, 0.0, 1.0)
 
-		# Phase 1: Meteor streak falling (0.0 to 0.2s)
-		if t < 0.2:
-			var ratio: float = t / 0.2
-			var curr_pos: Vector2 = start.lerp(target, ratio)
+		var col: Color = Color(1.0, 0.4, 0.1, alpha)
+		match elem:
+			"water": col = Color(0.2, 0.7, 1.0, alpha)
+			"earth": col = Color(0.8, 0.6, 0.2, alpha)
+			"wind": col = Color(0.3, 0.9, 0.6, alpha)
 
-			# Fiery tail
-			var tail_start: Vector2 = start.lerp(target, maxf(0.0, ratio - 0.3))
-			draw_line(tail_start, curr_pos, Color(1.0, 0.4, 0.1, 0.8), 8.0)
-			draw_line(tail_start, curr_pos, Color(1.0, 0.8, 0.2, 0.95), 4.0)
-
-			# Meteor fireball core
-			draw_circle(curr_pos, 14.0, Color(1.0, 0.35, 0.05, 0.9))
-			draw_circle(curr_pos, 8.0, Color(1.0, 0.85, 0.3, 0.95))
-			draw_circle(curr_pos, 4.0, Color(1.0, 1.0, 1.0, 1.0))
-
-		# Phase 2: Ground Impact flash, shockwave and ember particles (0.2s to 0.65s)
-		else:
-			var impact_t: float = (t - 0.2) / 0.45
-			var alpha: float = clampf(1.0 - impact_t, 0.0, 1.0)
-
-			# Shockwave ring expanding
-			var ring_radius: float = 20.0 + impact_t * 160.0
-			draw_arc(target, ring_radius, 0, TAU, 32, Color(1.0, 0.6, 0.2, alpha * 0.85), 3.0, true)
-			draw_arc(target, ring_radius * 0.8, 0, TAU, 24, Color(1.0, 0.85, 0.4, alpha * 0.6), 2.0, true)
-
-			# Bright center impact flash
-			if impact_t < 0.3:
-				var flash_alpha: float = (0.3 - impact_t) / 0.3
-				draw_circle(target, 45.0 * flash_alpha, Color(1.0, 0.9, 0.6, flash_alpha * 0.85))
-
-			# Flying ember sparks
-			for k: int in range(8):
-				var ang: float = float(k) * (TAU / 8.0) + 0.3
-				var dist: float = 30.0 + impact_t * 110.0
-				var p_pos: Vector2 = target + Vector2(cos(ang), sin(ang) * 0.6) * dist
-				draw_circle(p_pos, maxf(1.0, 4.0 * alpha), Color(1.0, 0.45, 0.1, alpha))
-
+		draw_arc(target, rad * ratio, 0, TAU, 24, col, 3.0, true)
+		draw_circle(target, rad * 0.4 * (1.0 - ratio), Color(col.r, col.g, col.b, alpha * 0.5))

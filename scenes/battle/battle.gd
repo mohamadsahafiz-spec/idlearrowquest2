@@ -77,6 +77,8 @@ func _ready() -> void:
 		hud_placeholder.save_system = save_system
 		hud_placeholder.skill_requested.connect(_on_skill_requested)
 		hud_placeholder.skill_auto_toggled.connect(_on_skill_auto_toggled)
+		hud_placeholder.skill_slot_requested.connect(_on_skill_slot_requested)
+		hud_placeholder.skill_slot_auto_toggled.connect(_on_skill_slot_auto_toggled)
 		hud_placeholder.auto_upgrade_toggled.connect(_on_auto_upgrade_toggled)
 		hud_placeholder.auto_equip_toggled.connect(_on_auto_equip_toggled)
 		hud_placeholder.debug_sim_offline.connect(_on_debug_sim_offline)
@@ -177,6 +179,14 @@ func _on_skill_requested(skill_name: String) -> void:
 func _on_skill_auto_toggled(skill_name: String) -> void:
 	if skill_system != null:
 		skill_system.toggle_auto(skill_name)
+
+func _on_skill_slot_requested(slot_idx: int) -> void:
+	if skill_system != null:
+		skill_system.trigger_slot(slot_idx)
+
+func _on_skill_slot_auto_toggled(slot_idx: int) -> void:
+	if skill_system != null:
+		skill_system.toggle_slot_auto(slot_idx)
 
 func _on_skill_state_changed() -> void:
 	if hud_placeholder != null:

@@ -115,6 +115,7 @@ func save_game() -> void:
 		"auto_upgrade": auto_upgrade_enabled,
 		"auto_equip": auto_equip_enabled,
 		"auto_skills": auto_skills,
+		"skill_system": skill_system.to_dict(),
 		"inventory": inv_arr,
 		"equipped": eq_dict,
 		"maid_equipped": equipment_system.maid_equipped_to_dict() if equipment_system.has_method("maid_equipped_to_dict") else {},
@@ -185,10 +186,13 @@ func apply_save_data(data: Dictionary) -> float:
 	auto_equip_enabled = bool(data.get("auto_equip", false))
 
 	if skill_system != null:
-		var auto_skills: Dictionary = data.get("auto_skills", {})
-		skill_system.meteor_auto = bool(auto_skills.get("meteor", false))
-		skill_system.freeze_auto = bool(auto_skills.get("freeze", false))
-		skill_system.overdrive_auto = bool(auto_skills.get("overdrive", false))
+		if data.has("skill_system") and data["skill_system"] is Dictionary:
+			skill_system.from_dict(data["skill_system"])
+		else:
+			var auto_skills: Dictionary = data.get("auto_skills", {})
+			skill_system.meteor_auto = bool(auto_skills.get("meteor", false))
+			skill_system.freeze_auto = bool(auto_skills.get("freeze", false))
+			skill_system.overdrive_auto = bool(auto_skills.get("overdrive", false))
 		skill_system.skill_state_changed.emit()
 
 	if maid_system != null:

@@ -7,6 +7,8 @@ signal continue_requested()
 signal challenge_requested()
 signal skill_requested(skill_name: String)
 signal skill_auto_toggled(skill_name: String)
+signal skill_slot_requested(slot_idx: int)
+signal skill_slot_auto_toggled(slot_idx: int)
 signal auto_upgrade_toggled()
 signal auto_equip_toggled()
 signal debug_sim_offline(seconds: float)
@@ -271,33 +273,21 @@ func _gui_input(event: InputEvent) -> void:
 			return
 
 		# Skill HUD Clicks (y: 626 to 686)
-		# Skill 1: Meteor
-		if Rect2(12, 626, 114, 60).has_point(pos):
-			skill_requested.emit("meteor")
-			accept_event()
-			return
-		elif Rect2(128, 626, 48, 60).has_point(pos):
-			skill_auto_toggled.emit("meteor")
-			accept_event()
-			return
-		# Skill 2: Freeze
-		elif Rect2(188, 626, 114, 60).has_point(pos):
-			skill_requested.emit("freeze")
-			accept_event()
-			return
-		elif Rect2(304, 626, 48, 60).has_point(pos):
-			skill_auto_toggled.emit("freeze")
-			accept_event()
-			return
-		# Skill 3: Overdrive
-		elif Rect2(364, 626, 114, 60).has_point(pos):
-			skill_requested.emit("overdrive")
-			accept_event()
-			return
-		elif Rect2(480, 626, 48, 60).has_point(pos):
-			skill_auto_toggled.emit("overdrive")
-			accept_event()
-			return
+		if skill_system != null:
+			var slot_count: int = skill_system.get_unlocked_slot_count()
+			var total_w: float = 516.0
+			var gap: float = 6.0
+			var slot_w: float = (total_w - (slot_count - 1) * gap) / float(slot_count)
+			for i in range(slot_count):
+				var card_rect: Rect2 = Rect2(12 + i * (slot_w + gap), 626, slot_w, 60)
+				if card_rect.has_point(pos):
+					if pos.y >= 666:
+						skill_slot_auto_toggled.emit(i)
+					else:
+						skill_slot_requested.emit(i)
+					accept_event()
+					queue_redraw()
+					return
 
 		if Rect2(10, 765, 124, 170).has_point(pos):
 			upgrade_requested.emit("attack")
@@ -741,95 +731,59 @@ func _draw_skills_bar() -> void:
 	if font == null:
 		return
 
-	# Skill 1: Meteor
-	_draw_skill_card(
-		Rect2(12, 626, 114, 60),
-		Rect2(128, 626, 48, 60),
-		"METEOR",
-		skill_system.is_meteor_ready(),
-		false,
-		skill_system.meteor_cooldown,
-		0.0,
-		skill_system.meteor_auto,
-		Color(1.0, 0.5, 0.1, 1.0),
-		font
-	)
+	var slot_count: int = skill_system.get_unlocked_slot_count()
+	var total_w: float = 516.0
+	var gap: float = 6.0
+	var slot_w: float = (total_w - (slot_count - 1) * gap) / float(slot_count)
 
-	# Skill 2: Freeze
-	_draw_skill_card(
-		Rect2(188, 626, 114, 60),
-		Rect2(304, 626, 48, 60),
-		"FREEZE",
-		skill_system.is_freeze_ready(),
-		skill_system.is_freeze_active(),
-		skill_system.freeze_cooldown,
-		skill_system.freeze_active_timer,
-		skill_system.freeze_auto,
-		Color(0.3, 0.8, 1.0, 1.0),
-		font
-	)
+	for i in range(slot_count):
+		var card_rect: Rect2 = Rect2(12 + i * (slot_w + gap), 626, slot_w, 60)
+		var sk_id: String = skill_system.equipped_slots[i] if i < skill_system.equipped_slots.size() else ""
+		var is_ready: bool = skill_system.is_slot_ready(i)
+		var cd: float = skill_system.slot_cooldowns[i] if i < skill_system.slot_cooldowns.size() else 0.0
+		var auto_on: bool = skill_system.slot_autos[i] if i < skill_system.slot_autos.size() else false
 
-	# Skill 3: Overdrive
-	_draw_skill_card(
-		Rect2(364, 626, 114, 60),
-		Rect2(480, 626, 48, 60),
-		"OVERDRIVE",
-		skill_system.is_overdrive_ready(),
-		skill_system.is_overdrive_active(),
-		skill_system.overdrive_cooldown,
-		skill_system.overdrive_active_timer,
-		skill_system.overdrive_auto,
-		Color(0.9, 0.3, 0.95, 1.0),
-		font
-	)
+		var eff: Dictionary = skill_system.get_skill_effective_stats(sk_id)
+		var sk_name: String = eff.get("name", "EMPTY") as String
+		var sk_elem: String = eff.get("element", "fire") as String
+		var sk_lvl: int = int(eff.get("level", 1))
 
-func _draw_skill_card(
-	btn_rect: Rect2,
-	auto_rect: Rect2,
-	title: String,
-	is_ready: bool,
-	is_active: bool,
-	cd: float,
-	active_timer: float,
-	auto_on: bool,
-	theme_color: Color,
-	font: Font
-) -> void:
-	var bg_col: Color = Color(0.08, 0.09, 0.12, 0.9)
-	var stroke_col: Color = Color(0.25, 0.3, 0.38, 0.6)
-	var status_text: String = "READY"
-	var status_col: Color = Color(0.6, 0.65, 0.7, 0.7)
+		var theme_color: Color = Color(1.0, 0.4, 0.1, 1.0)
+		match sk_elem:
+			"water": theme_color = Color(0.2, 0.7, 1.0, 1.0)
+			"earth": theme_color = Color(0.85, 0.65, 0.2, 1.0)
+			"wind": theme_color = Color(0.3, 0.9, 0.6, 1.0)
 
-	if is_active:
-		bg_col = theme_color.darkened(0.6)
-		stroke_col = theme_color
-		status_text = "ACTIVE %.1fs" % active_timer
-		status_col = theme_color.lightened(0.3)
-	elif is_ready:
-		bg_col = theme_color.darkened(0.7)
-		stroke_col = theme_color.lightened(0.2)
-		status_text = "READY"
-		status_col = Color(1.0, 0.92, 0.4, 1.0)
-	elif cd > 0.0:
-		status_text = "CD %.1fs" % cd
+		var bg_col: Color = Color(0.08, 0.09, 0.12, 0.9)
+		var stroke_col: Color = Color(0.25, 0.3, 0.38, 0.6)
+		var status_text: String = "READY"
+		var status_col: Color = Color(0.6, 0.65, 0.7, 0.7)
 
-	_draw_rounded_rect_filled(btn_rect, 6.0, bg_col)
-	_draw_rounded_rect_stroke(btn_rect, 6.0, stroke_col, 1.5 if (is_ready or is_active) else 1.0)
+		if sk_id.is_empty():
+			status_text = "EMPTY"
+		elif is_ready:
+			bg_col = theme_color.darkened(0.7)
+			stroke_col = theme_color.lightened(0.2)
+			status_text = "READY"
+			status_col = Color(1.0, 0.92, 0.4, 1.0)
+		elif cd > 0.0:
+			status_text = "%.1fs" % cd
 
-	var cx: float = btn_rect.position.x + btn_rect.size.x * 0.5
-	draw_string(font, Vector2(cx, btn_rect.position.y + 24), title, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, theme_color if (is_ready or is_active) else Color(0.6, 0.65, 0.7, 0.8))
-	draw_string(font, Vector2(cx, btn_rect.position.y + 44), status_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, status_col)
+		_draw_rounded_rect_filled(card_rect, 6.0, bg_col)
+		_draw_rounded_rect_stroke(card_rect, 6.0, stroke_col, 1.5 if is_ready else 1.0)
 
-	var auto_bg: Color = Color(0.08, 0.22, 0.12, 0.95) if auto_on else Color(0.06, 0.08, 0.11, 0.85)
-	var auto_stroke: Color = Color(0.25, 0.85, 0.45, 0.9) if auto_on else Color(0.25, 0.3, 0.35, 0.5)
-	_draw_rounded_rect_filled(auto_rect, 6.0, auto_bg)
-	_draw_rounded_rect_stroke(auto_rect, 6.0, auto_stroke, 1.2)
+		var cx: float = card_rect.position.x + card_rect.size.x * 0.5
+		var font_sz: int = 10 if slot_count <= 4 else 8
+		draw_string(font, Vector2(cx, card_rect.position.y + 18), sk_name.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, -1, font_sz, theme_color if is_ready else Color(0.7, 0.75, 0.8, 0.8))
+		draw_string(font, Vector2(cx, card_rect.position.y + 32), "Lv." + str(sk_lvl) + " " + status_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, status_col)
 
-	var acx: float = auto_rect.position.x + auto_rect.size.x * 0.5
-	draw_string(font, Vector2(acx, auto_rect.position.y + 24), "AUTO", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.8, 0.85, 0.9, 0.9) if auto_on else Color(0.5, 0.55, 0.6, 0.7))
-	var auto_val: String = "[ON]" if auto_on else "[OFF]"
-	var auto_val_col: Color = Color(0.3, 1.0, 0.5, 1.0) if auto_on else Color(0.5, 0.55, 0.6, 0.6)
-	draw_string(font, Vector2(acx, auto_rect.position.y + 42), auto_val, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, auto_val_col)
+		# Auto toggle bar at bottom of card
+		var auto_bg: Color = Color(0.08, 0.22, 0.12, 0.95) if auto_on else Color(0.06, 0.08, 0.11, 0.85)
+		var auto_stroke: Color = Color(0.25, 0.85, 0.45, 0.9) if auto_on else Color(0.25, 0.3, 0.35, 0.5)
+		var auto_bar_rect: Rect2 = Rect2(card_rect.position.x + 2, card_rect.position.y + 40, card_rect.size.x - 4, 17)
+		_draw_rounded_rect_filled(auto_bar_rect, 4.0, auto_bg)
+		_draw_rounded_rect_stroke(auto_bar_rect, 4.0, auto_stroke, 1.0)
+		draw_string(font, Vector2(cx, auto_bar_rect.position.y + 12), "AUTO " + ("[ON]" if auto_on else "[OFF]"), HORIZONTAL_ALIGNMENT_CENTER, -1, 8, Color(0.3, 1.0, 0.5, 1.0) if auto_on else Color(0.5, 0.55, 0.6, 0.6))
 
 func _draw_idle_status_bar() -> void:
 	var font: Font = ThemeDB.fallback_font

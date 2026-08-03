@@ -15,6 +15,7 @@ enum Tier {
 @export var attack: float = 10.0
 @export var attack_speed: float = 1.0
 @export var reward: int = 10
+@export var element: String = "fire"
 
 static func create_for_tier(target_tier: Tier, stage_level: int = 1, world_id: int = 1) -> EnemyStats:
 	var stats: EnemyStats = EnemyStats.new()
@@ -25,6 +26,17 @@ static func create_for_tier(target_tier: Tier, stage_level: int = 1, world_id: i
 	var stage_scale: float = maxf(0.0, float(stage_level - 1)) * 0.22
 	var global_scale: float = pow(float(global_stage - 1) * 0.012, 1.25)
 	var scale_mult: float = (1.0 + stage_scale) * world_scale + global_scale
+
+	var elem_pool: Array[String] = ["fire", "earth"]
+	if world_id == 2:
+		elem_pool = ["earth", "water"]
+	elif world_id == 3:
+		elem_pool = ["water", "wind"]
+	elif world_id == 4:
+		elem_pool = ["wind", "fire"]
+	elif world_id >= 5:
+		elem_pool = ["fire", "water", "earth", "wind"]
+	stats.element = elem_pool[randi() % elem_pool.size()]
 	match target_tier:
 		Tier.NORMAL:
 			stats.max_hp = 100.0 * scale_mult
