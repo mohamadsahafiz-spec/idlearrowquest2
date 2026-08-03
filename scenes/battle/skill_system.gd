@@ -234,7 +234,7 @@ func _process(delta: float) -> void:
 
 	if can_auto_trigger() and _has_active_enemies():
 		for i in range(active_slots):
-			if slot_autos[i] and is_slot_ready(i):
+			if is_slot_ready(i):
 				trigger_slot(i)
 
 	if state_changed:

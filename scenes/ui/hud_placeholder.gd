@@ -261,7 +261,16 @@ func _gui_input(event: InputEvent) -> void:
 				return
 
 		# Idle Status Bar Clicks (y: 580 to 618)
-		if Rect2(132, 580, 120, 38).has_point(pos):
+		if Rect2(12, 580, 114, 38).has_point(pos):
+			if skill_system != null:
+				skill_system.global_auto_skills = not skill_system.global_auto_skills
+				skill_system.skill_state_changed.emit()
+				if save_system != null:
+					save_system.save_game()
+			accept_event()
+			queue_redraw()
+			return
+		elif Rect2(132, 580, 120, 38).has_point(pos):
 			auto_upgrade_toggled.emit()
 			accept_event()
 			queue_redraw()
@@ -838,15 +847,17 @@ func _draw_idle_status_bar() -> void:
 	if font == null:
 		return
 
-	var skills_on: bool = (skill_system.meteor_auto or skill_system.freeze_auto or skill_system.overdrive_auto) if skill_system != null else false
+	var skills_on: bool = skill_system.global_auto_skills if skill_system != null else false
 	var auto_upg_on: bool = save_system.auto_upgrade_enabled if save_system != null else false
 	var auto_eq_on: bool = save_system.auto_equip_enabled if save_system != null else false
 
 	# 1. Auto Skills Status (Rect2(12, 580, 114, 38))
 	var box1_rect: Rect2 = Rect2(12, 580, 114, 38)
-	_draw_rounded_rect_filled(box1_rect, 6.0, Color(0.06, 0.1, 0.15, 0.9))
-	_draw_rounded_rect_stroke(box1_rect, 6.0, Color(0.25, 0.35, 0.5, 0.7), 1.0)
-	draw_string(font, Vector2(69, 595), "AUTO SKILLS", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.7, 0.8, 0.9, 0.9))
+	var box1_bg: Color = Color(0.08, 0.22, 0.12, 0.95) if skills_on else Color(0.06, 0.08, 0.11, 0.85)
+	var box1_stroke: Color = Color(0.25, 0.85, 0.45, 0.9) if skills_on else Color(0.25, 0.3, 0.35, 0.5)
+	_draw_rounded_rect_filled(box1_rect, 6.0, box1_bg)
+	_draw_rounded_rect_stroke(box1_rect, 6.0, box1_stroke, 1.2)
+	draw_string(font, Vector2(69, 595), "AUTO SKILLS", HORIZONTAL_ALIGNMENT_CENTER, -1, 9, Color(0.85, 0.9, 0.95, 0.9) if skills_on else Color(0.55, 0.6, 0.65, 0.7))
 	draw_string(font, Vector2(69, 610), "[ON]" if skills_on else "[OFF]", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, Color(0.3, 1.0, 0.5, 1.0) if skills_on else Color(0.5, 0.55, 0.6, 0.7))
 
 	# 2. Auto Upgrade Toggle Button (Rect2(132, 580, 120, 38))
